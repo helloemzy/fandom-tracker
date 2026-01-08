@@ -1,0 +1,25 @@
+# Environment variables (NEVER commit API keys!)
+.env
+
+# Python compiled files
+*.pyc
+__pycache__/
+
+# macOS system files
+.DS_Store
+
+# Data files (can get large, regenerate with update_data.py)
+data/*.csv
+
+# Logs
+logs/
+
+# IDE settings
+.vscode/
+.idea/
+
+# Claude Code temporary files
+.claude/
+
+# Virtual environment
+venv/

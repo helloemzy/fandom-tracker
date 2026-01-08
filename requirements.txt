@@ -1,0 +1,32 @@
+# Signal Index - Python Dependencies
+# Updated versions for Python 3.14 compatibility
+
+# X (Twitter) API Client (updated for Python 3.14 compatibility)
+tweepy>=4.14.0
+
+# Data manipulation (updated for Python 3.14)
+pandas>=2.1.0
+
+# Web dashboard framework (updated)
+streamlit>=1.30.0
+
+# Interactive charts and visualizations
+plotly==5.17.0
+
+# YouTube API Client
+google-api-python-client==2.100.0
+
+# Environment variable management (for .env file)
+python-dotenv==1.0.0
+
+# ========================================
+# EDUCATIONAL NOTE: Version Compatibility
+# ========================================
+#
+# Changed from pinned versions (==) to minimum versions (>=) for:
+# - pandas: Now >=2.1.0 (has pre-built wheels for Python 3.14)
+# - streamlit: Now >=1.30.0 (compatible with newer Python)
+#
+# This prevents building from source, which requires system dependencies
+#
+# ========================================

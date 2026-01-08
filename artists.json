@@ -1,0 +1,67 @@
+{
+  "artists": [
+    {
+      "name": "NewJeans",
+      "category": "K-pop",
+      "twitter": "newjeans_official",
+      "youtube_channel_id": "UCdZlB77W6p-qx08FaZG_0kw",
+      "active": true
+    },
+    {
+      "name": "BTS",
+      "category": "K-pop",
+      "twitter": "BTS_twt",
+      "youtube_channel_id": "UCLkAepWjdylmXSltofFvsYQ",
+      "active": true
+    },
+    {
+      "name": "BLACKPINK",
+      "category": "K-pop",
+      "twitter": "BLACKPINK",
+      "youtube_channel_id": "UCOmHUn--16B90oW2L6FRR3A",
+      "active": true
+    },
+    {
+      "name": "Stray Kids",
+      "category": "K-pop",
+      "twitter": "Stray_Kids",
+      "youtube_channel_id": "UCritGVo7pLJLUS8wEu32vow",
+      "active": true
+    },
+    {
+      "name": "Taylor Swift",
+      "category": "Western",
+      "twitter": "taylorswift13",
+      "youtube_channel_id": "UCqECaJ8Gagnn7YCbPEzWH6g",
+      "active": true
+    },
+    {
+      "name": "Hailey Bieber",
+      "category": "Western",
+      "twitter": "haileybieber",
+      "youtube_channel_id": null,
+      "active": true
+    },
+    {
+      "name": "Sabrina Carpenter",
+      "category": "Western",
+      "twitter": "SabrinaAnnLynn",
+      "youtube_channel_id": "UCZkURf9Elvis-qrkaGLj8og",
+      "active": true
+    },
+    {
+      "name": "Olivia Rodrigo",
+      "category": "Western",
+      "twitter": "oliviarodrigo",
+      "youtube_channel_id": "UCYwgNMZMhqoRjT40TV8oj0w",
+      "active": true
+    },
+    {
+      "name": "Ariana Grande",
+      "category": "Western",
+      "twitter": "ArianaGrande",
+      "youtube_channel_id": "UC9CoOnJkIBMdeijd9qYoT_g",
+      "active": true
+    }
+  ]
+}
