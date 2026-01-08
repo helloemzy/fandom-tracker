@@ -8,8 +8,8 @@ __pycache__/
 # macOS system files
 .DS_Store
 
-# Data files (can get large, regenerate with update_data.py)
-data/*.csv
+# Keep data files, ignore everything else in data/
+data/.gitkeep
 
 # Logs
 logs/
