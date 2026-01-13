@@ -70,8 +70,26 @@ st.markdown("""
 # DATA LOADING FUNCTION
 # ========================================
 
+def get_data_version():
+    """
+    Build a cache-busting key from CSV modification times.
+
+    This keeps cached data fresh when files change on disk.
+    """
+    paths = [
+        'data/rankings.csv',
+        'data/x_data.csv',
+        'data/youtube_data.csv',
+        'data/chart_data.csv'
+    ]
+    mtimes = []
+    for path in paths:
+        mtimes.append(os.path.getmtime(path) if os.path.exists(path) else None)
+    return tuple(mtimes)
+
+
 @st.cache_data(ttl=3600)  # Cache for 1 hour (3600 seconds)
-def load_data():
+def load_data(_version_key=None):
     """
     Load all data files
 
@@ -107,7 +125,7 @@ def load_data():
 
 
 # Load data
-rankings, x_data, yt_data, chart_data = load_data()
+rankings, x_data, yt_data, chart_data = load_data(get_data_version())
 
 # Merge chart data into rankings if available
 if not chart_data.empty and not rankings.empty:
@@ -128,6 +146,9 @@ st.markdown("**Tracking Celebrity Influence on Consumer Behavior**")
 if not rankings.empty:
     last_update = rankings['date'].iloc[0]
     st.info(f"📅 Last updated: {last_update}")
+    if os.path.exists('data/rankings.csv'):
+        file_updated = datetime.fromtimestamp(os.path.getmtime('data/rankings.csv'))
+        st.caption(f"Rankings file updated: {file_updated:%Y-%m-%d %H:%M:%S}")
 
 # ========================================
 # SIDEBAR NAVIGATION
