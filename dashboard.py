@@ -278,46 +278,92 @@ if page == "🏆 Top Influencers":
             )
 
     # ========================================
-    # SCORE BREAKDOWN CHART
+    # CHART 1: INDIVIDUAL CHART RANKINGS
     # ========================================
 
-    st.subheader("📊 Score Components")
+    st.subheader("📊 Individual Chart Rankings")
 
-    # Stacked bar chart showing how scores are calculated
-    fig2 = go.Figure()
-
-    fig2.add_trace(go.Bar(
-        name='X Engagement (30%)',
-        x=top_10['celebrity'],
-        y=top_10['x_component'],
-        marker_color='#636EFA'  # Blue
-    ))
-
-    fig2.add_trace(go.Bar(
-        name='YouTube Views (20%)',
-        x=top_10['celebrity'],
-        y=top_10['yt_component'],
-        marker_color='#EF553B'  # Red
-    ))
-
-    # Add chart component if available
-    if 'chart_component' in top_10.columns:
-        fig2.add_trace(go.Bar(
-            name='Chart Performance (50%)',
-            x=top_10['celebrity'],
-            y=top_10['chart_component'],
-            marker_color='#00CC96'  # Green
-        ))
-
-    fig2.update_layout(
-        barmode='stack',  # Stack bars on top of each other
-        xaxis_title="",
-        yaxis_title="Score Component",
-        height=400,
-        showlegend=True
+    chart_cols = [
+        ('spotify_position', 'Spotify'),
+        ('billboard_hot100', 'Billboard Hot 100'),
+        ('billboard_200', 'Billboard 200'),
+        ('melon_position', 'Melon')
+    ]
+    available_chart_cols = [col for col, _ in chart_cols if col in top_10.columns]
+    chart_rankings = top_10[['celebrity'] + available_chart_cols].melt(
+        id_vars='celebrity',
+        var_name='chart',
+        value_name='position'
     )
+    chart_rankings = chart_rankings.dropna()
 
-    st.plotly_chart(fig2, use_container_width=True)
+    if not chart_rankings.empty:
+        chart_label_map = dict(chart_cols)
+        chart_rankings['chart'] = chart_rankings['chart'].map(chart_label_map)
+
+        fig_chart = px.bar(
+            chart_rankings,
+            x='celebrity',
+            y='position',
+            color='chart',
+            barmode='group',
+            labels={'celebrity': '', 'position': 'Chart Position (lower is better)', 'chart': 'Chart'}
+        )
+        fig_chart.update_layout(height=420)
+        fig_chart.update_yaxes(autorange='reversed')
+        st.plotly_chart(fig_chart, use_container_width=True)
+    else:
+        st.info("No chart rankings available yet. Run `python update_charts.py`.")
+
+    # ========================================
+    # CHART 2: KEY METRIC CATEGORIES
+    # ========================================
+
+    st.subheader("🧭 Key Metric Categories")
+
+    metric_components = top_10[['celebrity', 'x_component', 'yt_component']].copy()
+    if 'chart_component' in top_10.columns:
+        metric_components['chart_component'] = top_10['chart_component']
+
+    metric_long = metric_components.melt(
+        id_vars='celebrity',
+        var_name='metric',
+        value_name='score'
+    )
+    metric_labels = {
+        'x_component': 'X Engagement',
+        'yt_component': 'YouTube Views',
+        'chart_component': 'Chart Performance'
+    }
+    metric_long['metric'] = metric_long['metric'].map(metric_labels)
+
+    fig_metrics = px.bar(
+        metric_long,
+        x='celebrity',
+        y='score',
+        color='metric',
+        barmode='group',
+        labels={'celebrity': '', 'score': 'Component Score', 'metric': 'Metric'}
+    )
+    fig_metrics.update_layout(height=420)
+    st.plotly_chart(fig_metrics, use_container_width=True)
+
+    # ========================================
+    # CHART 3: FULL SIGNAL INDEX SCORE
+    # ========================================
+
+    st.subheader("🏁 Full Signal Index Score")
+
+    fig_score = px.bar(
+        top_10,
+        x='celebrity',
+        y='signal_score',
+        color='signal_score',
+        color_continuous_scale='Blues',
+        labels={'celebrity': '', 'signal_score': 'Signal Index Score'}
+    )
+    fig_score.update_layout(height=420, showlegend=False)
+    st.plotly_chart(fig_score, use_container_width=True)
 
 # ========================================
 # PAGE 2: SPENDING SIGNALS
