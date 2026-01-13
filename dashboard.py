@@ -28,6 +28,8 @@ from datetime import datetime
 import os
 import json
 from config import load_artists, add_artist, toggle_artist, save_artists
+import update_data as update_data_module
+import update_charts as update_charts_module
 
 # ========================================
 # PAGE CONFIGURATION
@@ -132,6 +134,19 @@ if not rankings.empty:
 # ========================================
 
 # Sidebar stays visible on the left while pages change
+st.sidebar.markdown("### Data Controls")
+if st.sidebar.button("🔄 Refresh Data"):
+    with st.spinner("Refreshing data from X, YouTube, and charts..."):
+        try:
+            update_charts_module.main()
+            update_data_module.main()
+            st.cache_data.clear()
+            st.success("✅ Data refreshed.")
+            st.rerun()
+        except Exception as e:
+            st.error("❌ Refresh failed. Check the app logs for details.")
+            st.exception(e)
+
 page = st.sidebar.radio("📍 Navigate", [
     "🏆 Top Influencers",
     "💰 Spending Signals",
