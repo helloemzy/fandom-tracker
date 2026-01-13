@@ -1,9 +1,72 @@
 {
   "artists": [
     {
+      "name": "Taylor Swift",
+      "category": "Western",
+      "twitter": "taylorswift13",
+      "youtube_channel_id": "UCqECaJ8Gagnn7YCbPEzWH6g",
+      "active": true
+    },
+    {
+      "name": "Sabrina Carpenter",
+      "category": "Western",
+      "twitter": "SabrinaAnnLynn",
+      "youtube_channel_id": "UCZkURf9Elvis-qrkaGLj8og",
+      "active": true
+    },
+    {
+      "name": "Olivia Rodrigo",
+      "category": "Western",
+      "twitter": "oliviarodrigo",
+      "youtube_channel_id": "UCYwgNMZMhqoRjT40TV8oj0w",
+      "active": true
+    },
+    {
+      "name": "Billie Eilish",
+      "category": "Western",
+      "twitter": "billieeilish",
+      "youtube_channel_id": "UCiGm_E4ZwYSHV3bcW1pnSeQ",
+      "active": true
+    },
+    {
+      "name": "Dua Lipa",
+      "category": "Western",
+      "twitter": "DUALIPA",
+      "youtube_channel_id": "UC-J-KZfRV8c13fOCkhXdLiQ",
+      "active": true
+    },
+    {
+      "name": "Nicki Minaj",
+      "category": "Western",
+      "twitter": "NICKIMINAJ",
+      "youtube_channel_id": "UC3jOd7GUMhpgJRBhiLzuLsg",
+      "active": true
+    },
+    {
+      "name": "Cardi B",
+      "category": "Western",
+      "twitter": "iamcardib",
+      "youtube_channel_id": "UCxMAbVFmxKUVGAll0WVGpFw",
+      "active": true
+    },
+    {
+      "name": "Bruno Mars",
+      "category": "Western",
+      "twitter": "BrunoMars",
+      "youtube_channel_id": "UCoUM-UJ7rirJYP8CQ0EIaHA",
+      "active": true
+    },
+    {
+      "name": "Lady Gaga",
+      "category": "Western",
+      "twitter": "ladygaga",
+      "youtube_channel_id": "UCNL1ZadSjHpjm4q9j2sVtOA",
+      "active": true
+    },
+    {
       "name": "NewJeans",
       "category": "K-pop",
-      "twitter": "newjeans_official",
+      "twitter": "NewJeans_twt",
       "youtube_channel_id": "UCdZlB77W6p-qx08FaZG_0kw",
       "active": true
     },
@@ -29,38 +92,122 @@
       "active": true
     },
     {
-      "name": "Taylor Swift",
-      "category": "Western",
-      "twitter": "taylorswift13",
-      "youtube_channel_id": "UCqECaJ8Gagnn7YCbPEzWH6g",
+      "name": "SEVENTEEN",
+      "category": "K-pop",
+      "twitter": "pledis_17",
+      "youtube_channel_id": "UC0gpUnoyhu44aS3-NxYs7rg",
       "active": true
     },
     {
-      "name": "Hailey Bieber",
-      "category": "Western",
-      "twitter": "haileybieber",
+      "name": "TWICE",
+      "category": "K-pop",
+      "twitter": "JYPETWICE",
+      "youtube_channel_id": "UCzgxx_DM2Dcb9Y1spb9mUJA",
+      "active": true
+    },
+    {
+      "name": "ITZY",
+      "category": "K-pop",
+      "twitter": "ITZYofficial",
+      "youtube_channel_id": "UCDhM2k2Cua-JdobAh5moMFg",
+      "active": true
+    },
+    {
+      "name": "(G)I-DLE",
+      "category": "K-pop",
+      "twitter": "G_I_DLE",
       "youtube_channel_id": null,
       "active": true
     },
     {
-      "name": "Sabrina Carpenter",
-      "category": "Western",
-      "twitter": "SabrinaAnnLynn",
-      "youtube_channel_id": "UCZkURf9Elvis-qrkaGLj8og",
+      "name": "aespa",
+      "category": "K-pop",
+      "twitter": "aespa_official",
+      "youtube_channel_id": "UC9GtSLeksfK4yuJ_g1lgQbg",
       "active": true
     },
     {
-      "name": "Olivia Rodrigo",
-      "category": "Western",
-      "twitter": "oliviarodrigo",
-      "youtube_channel_id": "UCYwgNMZMhqoRjT40TV8oj0w",
+      "name": "LE SSERAFIM",
+      "category": "K-pop",
+      "twitter": "IM_LESSERAFIM",
+      "youtube_channel_id": "UCs-QBT4qkj_YiQw1ZntDO3g",
       "active": true
     },
     {
-      "name": "Ariana Grande",
-      "category": "Western",
-      "twitter": "ArianaGrande",
-      "youtube_channel_id": "UC9CoOnJkIBMdeijd9qYoT_g",
+      "name": "IVE",
+      "category": "K-pop",
+      "twitter": "IVEstarship",
+      "youtube_channel_id": "UC-Fnix71vRP64WXeo0ikd0Q",
+      "active": true
+    },
+    {
+      "name": "ILLIT",
+      "category": "K-pop",
+      "twitter": "ILLIT_official",
+      "youtube_channel_id": "UCEpFoWeCMCo5z3EvWaz6hQQ",
+      "active": true
+    },
+    {
+      "name": "Hearts2Hearts",
+      "category": "K-pop",
+      "twitter": "Hearts2Hearts",
+      "youtube_channel_id": null,
+      "active": true
+    },
+    {
+      "name": "KATSEYE",
+      "category": "K-pop",
+      "twitter": "katseyeworld",
+      "youtube_channel_id": "UCA61H4fWOMHikLcUFKyQUog",
+      "active": true
+    },
+    {
+      "name": "KiiiKiii",
+      "category": "K-pop",
+      "twitter": "We_KiiiKiii",
+      "youtube_channel_id": null,
+      "active": true
+    },
+    {
+      "name": "TXT",
+      "category": "K-pop",
+      "twitter": "TXT_bighit",
+      "youtube_channel_id": "UCtiObj3CsEAdNU6ZPWDsddQ",
+      "active": true
+    },
+    {
+      "name": "ENHYPEN",
+      "category": "K-pop",
+      "twitter": "ENHYPEN",
+      "youtube_channel_id": "UCArLZtok93cO5R9RI4_Y5Jw",
+      "active": true
+    },
+    {
+      "name": "BOYNEXTDOOR",
+      "category": "K-pop",
+      "twitter": "BOYNEXTDOOR_KOZ",
+      "youtube_channel_id": "UChhKBlh_wvspTh5n4mL0b5g",
+      "active": true
+    },
+    {
+      "name": "NMIXX",
+      "category": "K-pop",
+      "twitter": "NMIXX_official",
+      "youtube_channel_id": "UCnUAyD4t2LkvW68YrDh7fDg",
+      "active": true
+    },
+    {
+      "name": "CORTIS",
+      "category": "K-pop",
+      "twitter": "cortis_bighit",
+      "youtube_channel_id": null,
+      "active": true
+    },
+    {
+      "name": "All Day Project",
+      "category": "K-pop",
+      "twitter": "ALLDAY_PROJECT",
+      "youtube_channel_id": null,
       "active": true
     }
   ]

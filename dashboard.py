@@ -76,7 +76,7 @@ def load_data():
     @st.cache_data decorator means: "Remember this result for 1 hour"
     Why? So we don't re-read CSV files on every button click
 
-    Returns: (rankings_df, x_data_df, yt_data_df)
+    Returns: (rankings_df, x_data_df, yt_data_df, chart_data_df)
     """
     try:
         rankings = pd.read_csv('data/rankings.csv')
@@ -92,15 +92,28 @@ def load_data():
         else:
             yt_data = pd.DataFrame()
 
-        return rankings, x_data, yt_data
+        if os.path.exists('data/chart_data.csv'):
+            chart_data = pd.read_csv('data/chart_data.csv')
+        else:
+            chart_data = pd.DataFrame()
+
+        return rankings, x_data, yt_data, chart_data
 
     except Exception as e:
         # If any error (file not found, corrupted CSV, etc.)
-        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
 
 # Load data
-rankings, x_data, yt_data = load_data()
+rankings, x_data, yt_data, chart_data = load_data()
+
+# Merge chart data into rankings if available
+if not chart_data.empty and not rankings.empty:
+    rankings = rankings.merge(
+        chart_data[['celebrity', 'spotify_position', 'billboard_hot100', 'billboard_200', 'melon_position']],
+        on='celebrity',
+        how='left'
+    )
 
 # ========================================
 # HEADER
@@ -159,12 +172,37 @@ if page == "🏆 Top Influencers":
 
     # Plotly creates interactive charts/tables
     # go.Table creates a styled table (better than st.dataframe)
+
+    # Helper function to format chart positions
+    def format_chart_position(pos):
+        if pd.isna(pos) or pos is None:
+            return '-'
+        return f"#{int(pos)}"
+
+    # Helper function to format best chart with source
+    def format_best_chart(row):
+        positions = []
+        if pd.notna(row.get('spotify_position')):
+            positions.append(('Spotify', row['spotify_position']))
+        if pd.notna(row.get('billboard_hot100')):
+            positions.append(('BB Hot 100', row['billboard_hot100']))
+        if pd.notna(row.get('billboard_200')):
+            positions.append(('BB 200', row['billboard_200']))
+        if pd.notna(row.get('melon_position')):
+            positions.append(('Melon', row['melon_position']))
+
+        if positions:
+            best = min(positions, key=lambda x: x[1])
+            return f"#{int(best[1])} ({best[0]})"
+        return '-'
+
     fig = go.Figure(data=[go.Table(
         header=dict(
             values=['<b>Rank</b>', '<b>Artist</b>', '<b>Category</b>', '<b>Signal Score</b>',
-                   '<b>X Engagement</b>', '<b>YouTube Views</b>'],
+                   '<b>Best Chart</b>', '<b>Spotify</b>', '<b>BB Hot 100</b>', '<b>BB 200</b>',
+                   '<b>Melon</b>', '<b>X Engagement</b>', '<b>YouTube Views</b>'],
             fill_color='#1f77b4',  # Blue header
-            font=dict(color='white', size=14),
+            font=dict(color='white', size=12),
             align='left',
             height=40
         ),
@@ -173,12 +211,17 @@ if page == "🏆 Top Influencers":
                 top_10['Rank'],
                 top_10['celebrity'],
                 top_10['category'],
-                top_10['signal_score'],
+                top_10['signal_score'].apply(lambda x: f"{x:.1f}"),
+                top_10.apply(format_best_chart, axis=1),
+                top_10.get('spotify_position', pd.Series([None]*len(top_10))).apply(format_chart_position),
+                top_10.get('billboard_hot100', pd.Series([None]*len(top_10))).apply(format_chart_position),
+                top_10.get('billboard_200', pd.Series([None]*len(top_10))).apply(format_chart_position),
+                top_10.get('melon_position', pd.Series([None]*len(top_10))).apply(format_chart_position),
                 top_10['x_engagement_rate'].apply(lambda x: f"{x:.2%}"),  # Format as percentage
                 top_10['youtube_views'].apply(lambda x: f"{x:,}")  # Format with commas
             ],
-            fill_color=[['#f0f2f6', 'white'] * 6],  # Alternating row colors
-            font=dict(size=13),
+            fill_color=[['#f0f2f6', 'white'] * 11],  # Alternating row colors
+            font=dict(size=11),
             align='left',
             height=35
         )
@@ -193,8 +236,8 @@ if page == "🏆 Top Influencers":
 
     st.subheader("📈 This Week's Highlights")
 
-    # Create 3 columns for side-by-side metrics
-    col1, col2, col3 = st.columns(3)
+    # Create 4 columns for side-by-side metrics
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         top_artist = top_10.iloc[0]  # First row (highest ranked)
@@ -205,6 +248,18 @@ if page == "🏆 Top Influencers":
         )
 
     with col2:
+        # Find best chart position
+        if 'chart_position' in top_10.columns:
+            chart_artists = top_10[top_10['chart_position'].notna()]
+            if not chart_artists.empty:
+                best_chart = chart_artists.loc[chart_artists['chart_position'].idxmin()]
+                st.metric(
+                    "📊 Top Chart Position",
+                    best_chart['celebrity'],
+                    f"#{int(best_chart['chart_position'])}"
+                )
+
+    with col3:
         if top_10['x_engagement_rate'].max() > 0:
             most_engaged = top_10.loc[top_10['x_engagement_rate'].idxmax()]
             st.metric(
@@ -213,7 +268,7 @@ if page == "🏆 Top Influencers":
                 f"{most_engaged['x_engagement_rate']:.2%}"
             )
 
-    with col3:
+    with col4:
         if top_10['youtube_views'].max() > 0:
             most_views = top_10.loc[top_10['youtube_views'].idxmax()]
             st.metric(
@@ -232,18 +287,27 @@ if page == "🏆 Top Influencers":
     fig2 = go.Figure()
 
     fig2.add_trace(go.Bar(
-        name='X Engagement (60%)',
+        name='X Engagement (30%)',
         x=top_10['celebrity'],
         y=top_10['x_component'],
         marker_color='#636EFA'  # Blue
     ))
 
     fig2.add_trace(go.Bar(
-        name='YouTube Views (40%)',
+        name='YouTube Views (20%)',
         x=top_10['celebrity'],
         y=top_10['yt_component'],
         marker_color='#EF553B'  # Red
     ))
+
+    # Add chart component if available
+    if 'chart_component' in top_10.columns:
+        fig2.add_trace(go.Bar(
+            name='Chart Performance (50%)',
+            x=top_10['celebrity'],
+            y=top_10['chart_component'],
+            marker_color='#00CC96'  # Green
+        ))
 
     fig2.update_layout(
         barmode='stack',  # Stack bars on top of each other

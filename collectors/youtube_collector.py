@@ -22,8 +22,9 @@ def collect_youtube_data():
     3. Gets view count, likes, and comments for each video
     4. Returns everything as a DataFrame
 
-    Why only videos from the last 30 days?
+    Why only videos from the last 90 days?
     - Recent videos show current momentum
+    - 90-day window captures artists who don't post as frequently
     - Old viral videos don't reflect current influence
 
     Returns: pandas DataFrame with columns:
@@ -75,9 +76,10 @@ def collect_youtube_data():
             continue
 
         try:
-            # Calculate date 30 days ago
+            # Calculate date 90 days ago
             # YouTube API requires this in ISO format (e.g., "2024-01-07T00:00:00Z")
-            thirty_days_ago = (datetime.now() - timedelta(days=30)).isoformat() + 'Z'
+            # Changed from 30 to 90 days to capture more artists who don't post as frequently
+            ninety_days_ago = (datetime.now() - timedelta(days=90)).isoformat() + 'Z'
 
             # Step 1: Search for recent videos from this channel
             search_response = youtube.search().list(
@@ -86,7 +88,7 @@ def collect_youtube_data():
                 maxResults=3,  # Last 3 videos
                 order='date',  # Most recent first
                 type='video',  # Only videos (not playlists or channels)
-                publishedAfter=thirty_days_ago  # Only recent content
+                publishedAfter=ninety_days_ago  # Extended to 90 days for better coverage
             ).execute()
 
             # Step 2: For each video, get detailed statistics

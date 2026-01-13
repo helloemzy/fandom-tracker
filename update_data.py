@@ -118,12 +118,29 @@ def main():
         print(f"💾 Saved {len(yt_df)} YouTube data points → data/youtube_data.csv")
 
     # ========================================
-    # STAGE 5: Calculate Rankings
+    # STAGE 5: Load Chart Data (if available)
+    # ========================================
+
+    # Try to load chart data if it exists
+    # Chart data is collected separately via update_charts.py
+    chart_df = pd.DataFrame()
+    if os.path.exists('data/chart_data.csv'):
+        try:
+            chart_df = pd.read_csv('data/chart_data.csv')
+            print(f"\n📊 Loaded chart data: {len(chart_df)} artists")
+        except Exception as e:
+            print(f"\n⚠️  Could not load chart data: {str(e)}")
+            chart_df = pd.DataFrame()
+    else:
+        print(f"\n💡 No chart data found. Run 'python update_charts.py' to collect chart data.")
+
+    # ========================================
+    # STAGE 6: Calculate Rankings
     # ========================================
 
     print("\n📊 Calculating Signal Index scores...")
 
-    rankings = calculate_signal_score(x_df, yt_df)
+    rankings = calculate_signal_score(x_df, yt_df, chart_df if not chart_df.empty else None)
 
     # Add today's date to the rankings
     rankings['date'] = datetime.now().strftime('%Y-%m-%d')
