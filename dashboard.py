@@ -612,14 +612,6 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("**Signal Index MVP**")
 st.sidebar.caption("Data sources: X API + YouTube API")
 
-# Quick actions
-st.sidebar.markdown("### 🚀 Quick Actions")
-
-# Button to clear cache and reload data
-if st.sidebar.button("🔄 Refresh Data"):
-    st.cache_data.clear()  # Clear cached data
-    st.rerun()  # Reload the page
-
 
 # ========================================
 # EDUCATIONAL NOTE: Streamlit Execution Model
