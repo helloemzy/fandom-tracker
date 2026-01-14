@@ -9,6 +9,8 @@ from sqlalchemy import and_
 from connectors.rss_koreansales import parse_items
 import requests
 from bs4 import BeautifulSoup
+from io import StringIO
+import pandas as pd
 
 
 def _normalize_key(value):
@@ -129,6 +131,21 @@ def _fetch_rss_items(url):
         response.raise_for_status()
     except Exception as exc:
         return [], f"{type(exc).__name__}: {exc}"
+
+    if url.endswith(".csv"):
+        try:
+            df = pd.read_csv(StringIO(response.text))
+        except Exception as exc:
+            return [], f"{type(exc).__name__}: {exc}"
+
+        items = []
+        for _, row in df.iterrows():
+            items.append({
+                "title": row.get("Title", "") or "",
+                "description": row.get("Description", "") or "",
+                "pubDate": row.get("Date", "") or ""
+            })
+        return items, None
 
     soup = BeautifulSoup(response.text, "xml")
     items = []

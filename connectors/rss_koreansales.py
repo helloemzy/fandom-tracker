@@ -22,7 +22,13 @@ def _parse_date_from_title(title):
 def _parse_pub_date(pub_date):
     if not pub_date:
         return None
-    return parsedate_to_datetime(pub_date).date()
+    try:
+        return parsedate_to_datetime(pub_date).date()
+    except Exception:
+        try:
+            return datetime.fromisoformat(pub_date.replace("Z", "+00:00")).date()
+        except Exception:
+            return None
 
 
 def _extract_text(html_text):
