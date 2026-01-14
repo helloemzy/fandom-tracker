@@ -1,8 +1,8 @@
 import json
 from sqlalchemy import delete
-from app.config import load_metrics_config, load_watchlist, load_rss_sources
-from app.db import get_engine, get_session, init_db, Person, Observation
-from app.metrics import normalize_value
+from signal_app.config import load_metrics_config, load_watchlist, load_rss_sources
+from signal_app.db import get_engine, get_session, init_db, Person, Observation
+from signal_app.metrics import normalize_value
 from connectors.lastfm import fetch_artist_stats
 from datetime import date
 from sqlalchemy import and_
@@ -130,7 +130,7 @@ def _fetch_rss_items(url):
     except Exception as exc:
         return [], f"{type(exc).__name__}: {exc}"
 
-    soup = BeautifulSoup(response.text, "lxml")
+    soup = BeautifulSoup(response.text, "xml")
     items = []
     for item in soup.find_all("item"):
         items.append({

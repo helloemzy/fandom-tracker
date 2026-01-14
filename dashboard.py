@@ -4,10 +4,10 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from app.config import load_metrics_config, load_watchlist, load_templates
-from app.db import get_engine, init_db
-from app.ingest import run_lastfm_ingest, run_rss_ingest
-from app.queries import (
+from signal_app.config import load_metrics_config, load_watchlist, load_templates
+from signal_app.db import get_engine, init_db
+from signal_app.ingest import run_lastfm_ingest, run_rss_ingest
+from signal_app.queries import (
     load_observations_df,
     latest_observations,
     metric_timeseries,
