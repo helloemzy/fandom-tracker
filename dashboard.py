@@ -147,9 +147,9 @@ if errors:
     for platform_key, message in errors.items():
         st.error(f"{platform_key} fetch failed: {message}")
 
-    if not payloads:
-        st.info("No data returned.")
-    else:
+if not payloads:
+    st.info("No data returned.")
+else:
     for platform_key, payload in payloads.items():
         st.subheader(f"{platform_key.capitalize()} Chart")
         if request_type == "Artist chart" and artist_name:
@@ -158,10 +158,10 @@ if errors:
                 st.info("No matching artists found.")
         else:
             chart_df = payload_to_df(payload)
-            if chart_df.empty:
-                st.info("No data returned.")
-            else:
-                st.dataframe(chart_df, use_container_width=True)
+        if chart_df.empty:
+            st.info("No data returned.")
+        else:
+            st.dataframe(chart_df, use_container_width=True)
 
         with st.expander(f"Raw response: {platform_key}"):
             st.json(payload)
