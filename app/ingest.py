@@ -120,7 +120,11 @@ def run_lastfm_ingest():
 
 
 def _fetch_rss_items(url):
-    response = requests.get(url, timeout=30)
+    response = requests.get(
+        url,
+        timeout=30,
+        headers={"User-Agent": "SignalIndexRSS/1.0"}
+    )
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "lxml")
     items = []
@@ -152,11 +156,15 @@ def run_rss_ingest():
         person_lookup[_normalize_key(person_key)] = person_key
 
     observations = {}
+    items_total = 0
+    parsed_total = 0
 
     for source in sources:
         url = source["url"]
         items = _fetch_rss_items(url)
+        items_total += len(items)
         parsed = parse_items(items)
+        parsed_total += len(parsed)
         for entry in parsed:
             metric_key = entry["metric_key"]
             if metric_key not in metrics:
@@ -213,4 +221,8 @@ def run_rss_ingest():
 
     session.commit()
     session.close()
-    return rows_written
+    return {
+        "items": items_total,
+        "parsed": parsed_total,
+        "observations": rows_written
+    }

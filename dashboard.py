@@ -61,12 +61,17 @@ st.caption("Metrics-driven tracking across Impact, Fandom Power, and Value")
 st.sidebar.header("Data Controls")
 if st.sidebar.button("Refresh RSS Feeds"):
     with st.spinner("Fetching RSS metrics..."):
-        rows = run_rss_ingest()
+        result = run_rss_ingest()
         st.cache_data.clear()
-        if rows == 0:
+        if result["observations"] == 0:
             st.warning("No RSS data loaded. Check feed URLs and parser rules.")
         else:
-            st.success(f"Loaded {rows} RSS observations.")
+            st.success(
+                "Loaded {obs} RSS observations from {items} items.".format(
+                    obs=result["observations"],
+                    items=result["items"]
+                )
+            )
         st.rerun()
 
 if st.sidebar.button("Refresh Last.fm Data"):
@@ -128,6 +133,25 @@ if page == "Overview":
 
     pivot = snapshot.pivot(index="person", columns="metric", values="value_display")
     st.dataframe(pivot, use_container_width=True)
+
+    with st.expander("Latest RSS Metrics (Hanteo)"):
+        rss_metric_keys = ["realtime_pos_sales", "chodong_first_week"]
+        rss_latest = latest_df[latest_df["metric_key"].isin(rss_metric_keys)].copy()
+        if rss_latest.empty:
+            st.info("No RSS metrics loaded yet. Use 'Refresh RSS Feeds'.")
+        else:
+            rss_latest["metric"] = rss_latest["metric_key"].map(
+                lambda k: metrics_config[k]["display_name"]
+            )
+            rss_latest["value_display"] = rss_latest.apply(
+                lambda row: format_value(row["value_num"], row["value_text"], row["unit"]),
+                axis=1
+            )
+            st.dataframe(
+                rss_latest[["person", "metric", "value_display", "date"]]
+                .sort_values(["metric", "person"]),
+                use_container_width=True
+            )
 
     st.subheader("Metric Trend")
     metric_key = st.selectbox(
