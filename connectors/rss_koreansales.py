@@ -8,6 +8,11 @@ DATE_IN_TITLE_RE = re.compile(r"\\((\\d{2})\\.(\\d{2})\\.(\\d{2})\\)")
 HASHTAG_LINE_RE = re.compile(r"#([A-Za-z0-9_]+).*?(\\d[\\d,]*)\\s+copies", re.IGNORECASE)
 TOTAL_RE = re.compile(r"TOTAL\\s*[:\\-]\\s*([\\d,]+)", re.IGNORECASE)
 NUMBER_RE = re.compile(r"(\\d[\\d,]*)")
+ITUNES_RANK_RE = re.compile(r"#(\\d+)\\b")
+
+
+def _extract_hashtags(text):
+    return re.findall(r"#([A-Za-z0-9_]+)", text or "")
 
 
 def _parse_date_from_title(title):
@@ -44,6 +49,7 @@ def parse_items(items):
         title = item.get("title", "")
         description = _extract_text(item.get("description", ""))
         pub_date = _parse_pub_date(item.get("pubDate"))
+        text = f"{title}\\n{description}"
 
         if "Hanteo Album Chart" in title and "Daily" in title:
             chart_date = _parse_date_from_title(title) or pub_date
@@ -56,6 +62,19 @@ def parse_items(items):
             observations.extend(
                 _parse_hanteo_first_week(description, pub_date)
             )
+            continue
+
+        if "Worldwide iTunes Song Chart" in title or "Worldwide iTunes Song Chart" in description:
+            observations.extend(
+                _parse_itunes_song_chart(text, pub_date)
+            )
+            continue
+
+        if "Spotify Daily Top Artist" in title or "Spotify Daily Top Artist" in description:
+            observations.extend(
+                _parse_spotify_daily_artist(text, pub_date)
+            )
+            continue
 
     return observations
 
@@ -102,3 +121,43 @@ def _parse_hanteo_first_week(text, date_value):
         "date": date_value,
         "value_num": value
     }]
+
+
+def _parse_itunes_song_chart(text, date_value):
+    if not date_value:
+        return []
+
+    tags = _extract_hashtags(text)
+    rank_match = ITUNES_RANK_RE.search(text)
+    if not tags or not rank_match:
+        return []
+
+    rank = int(rank_match.group(1))
+    return [{
+        "tag": tags[0],
+        "metric_key": "itunes_song_rank",
+        "date": date_value,
+        "value_num": rank,
+        "raw": text
+    }]
+
+
+def _parse_spotify_daily_artist(text, date_value):
+    if not date_value:
+        return []
+
+    results = []
+    for line in text.splitlines():
+        match = re.match(r"(\\d+)\\.\\s*#([A-Za-z0-9_]+)", line.strip())
+        if not match:
+            continue
+        rank = int(match.group(1))
+        tag = match.group(2)
+        results.append({
+            "tag": tag,
+            "metric_key": "spotify_daily_artist_rank",
+            "date": date_value,
+            "value_num": rank,
+            "raw": line
+        })
+    return results

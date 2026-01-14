@@ -59,6 +59,24 @@ metrics:
     aggregation: last
     cadence: daily
 
+  spotify_daily_artist_rank:
+    display_name: Spotify Daily Artist Rank
+    pillar: impact
+    source: Spotify
+    unit: rank
+    directionality: lower_is_better
+    aggregation: last
+    cadence: daily
+
+  itunes_song_rank:
+    display_name: iTunes Song Rank
+    pillar: impact
+    source: iTunes
+    unit: rank
+    directionality: lower_is_better
+    aggregation: last
+    cadence: daily
+
   lastfm_listeners:
     display_name: Last.fm Listeners
     pillar: impact

@@ -181,6 +181,7 @@ def run_rss_ingest():
     parsed_total = 0
     errors = []
     sample_titles = []
+    csv_rows = []
 
     for source in sources:
         url = source["url"]
@@ -221,6 +222,14 @@ def run_rss_ingest():
                 "value_num": value_num,
                 "unit": metric["unit"]
             }
+            csv_rows.append({
+                "person_key": person.person_key,
+                "metric_key": metric_key,
+                "date": entry["date"],
+                "value_num": value_num,
+                "source": metric["source"],
+                "raw_text": entry.get("raw", "")
+            })
 
     rows_written = 0
     for (_, metric_key, date_value), data in observations.items():
@@ -246,6 +255,9 @@ def run_rss_ingest():
         )
         session.add(observation)
         rows_written += 1
+
+    if csv_rows:
+        pd.DataFrame(csv_rows).to_csv("data/rss_observations.csv", index=False)
 
     session.commit()
     session.close()
