@@ -102,21 +102,17 @@ else:
 artist_name = ""
 album_number = ""
 if request_type in {"Artist chart", "Artist albums"}:
-    artist_name = st.sidebar.text_input("Artist name", value="").strip()
+    artist_name = st.sidebar.text_input("Artist name (optional)", value="").strip()
 if request_type == "Album songs":
     album_number = st.sidebar.text_input("Album number", value="").strip()
 
 if request_type == "Artist chart":
-    st.caption("Artist search uses partial matching against the full chart list.")
+    st.caption("Artist search uses partial matching and never blocks chart loading.")
 
 if st.sidebar.button("Refresh"):
     st.session_state["live_refresh"] = st.session_state.get("live_refresh", 0) + 1
 
 refresh_key = st.session_state.get("live_refresh", 0)
-
-if request_type in {"Artist chart", "Artist albums"} and not artist_name:
-    st.info("Enter an artist name to fetch data.")
-    st.stop()
 
 if request_type == "Album songs" and not album_number:
     st.info("Enter an album number to fetch songs.")
@@ -154,14 +150,14 @@ if errors:
     if not payloads:
         st.info("No data returned.")
     else:
-        for platform_key, payload in payloads.items():
-            st.subheader(f"{platform_key.capitalize()} Chart")
-            if request_type == "Artist chart":
-                chart_df = filter_chart_entries(payload, artist_name)
-                if chart_df.empty:
-                    st.info("No matching artists found.")
-            else:
-                chart_df = payload_to_df(payload)
+    for platform_key, payload in payloads.items():
+        st.subheader(f"{platform_key.capitalize()} Chart")
+        if request_type == "Artist chart" and artist_name:
+            chart_df = filter_chart_entries(payload, artist_name)
+            if chart_df.empty:
+                st.info("No matching artists found.")
+        else:
+            chart_df = payload_to_df(payload)
             if chart_df.empty:
                 st.info("No data returned.")
             else:
