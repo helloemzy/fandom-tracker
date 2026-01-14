@@ -59,6 +59,24 @@ metrics:
     aggregation: last
     cadence: daily
 
+  lastfm_listeners:
+    display_name: Last.fm Listeners
+    pillar: impact
+    source: Last.fm
+    unit: count
+    directionality: higher_is_better
+    aggregation: last
+    cadence: daily
+
+  lastfm_playcount:
+    display_name: Last.fm Playcount
+    pillar: impact
+    source: Last.fm
+    unit: count
+    directionality: higher_is_better
+    aggregation: last
+    cadence: daily
+
   digital_index:
     display_name: Digital Index
     pillar: impact

@@ -6,7 +6,7 @@ import streamlit as st
 
 from app.config import load_metrics_config, load_watchlist, load_templates
 from app.db import get_engine, init_db
-from app.ingest import run_demo_ingest
+from app.ingest import run_demo_ingest, run_lastfm_ingest
 from app.queries import (
     load_observations_df,
     latest_observations,
@@ -69,6 +69,16 @@ st.title("Signal Index")
 st.caption("Metrics-driven tracking across Impact, Fandom Power, and Value")
 
 st.sidebar.header("Data Controls")
+if st.sidebar.button("Refresh Last.fm Data"):
+    with st.spinner("Fetching Last.fm stats..."):
+        rows = run_lastfm_ingest()
+        st.cache_data.clear()
+        if rows == 0:
+            st.warning("No Last.fm data loaded. Check API key and artist names.")
+        else:
+            st.success(f"Loaded {rows} Last.fm observations.")
+        st.rerun()
+
 if st.sidebar.button("Refresh Demo Data"):
     with st.spinner("Loading demo data..."):
         rows = run_demo_ingest()
