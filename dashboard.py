@@ -6,7 +6,7 @@ import streamlit as st
 
 from app.config import load_metrics_config, load_watchlist, load_templates
 from app.db import get_engine, init_db
-from app.ingest import run_demo_ingest, run_lastfm_ingest
+from app.ingest import run_lastfm_ingest
 from app.queries import (
     load_observations_df,
     latest_observations,
@@ -33,15 +33,6 @@ def get_db_version():
     return os.path.getmtime(db_path) if os.path.exists(db_path) else None
 
 
-def ensure_demo_data(engine):
-    try:
-        count = pd.read_sql("SELECT COUNT(*) AS count FROM observations", engine)["count"][0]
-    except Exception:
-        count = 0
-    if count == 0:
-        run_demo_ingest()
-
-
 def format_value(value_num, value_text, unit):
     if unit == "ordinal" and value_text:
         return value_text
@@ -59,7 +50,6 @@ def format_value(value_num, value_text, unit):
 
 
 engine = init_db(get_engine())
-ensure_demo_data(engine)
 
 pillars_config, metrics_config = load_metrics_config()
 watchlist = load_watchlist()
@@ -79,13 +69,6 @@ if st.sidebar.button("Refresh Last.fm Data"):
             st.success(f"Loaded {rows} Last.fm observations.")
         st.rerun()
 
-if st.sidebar.button("Refresh Demo Data"):
-    with st.spinner("Loading demo data..."):
-        rows = run_demo_ingest()
-        st.cache_data.clear()
-        st.success(f"Loaded {rows} demo observations.")
-        st.rerun()
-
 page = st.sidebar.radio(
     "Navigate",
     [
@@ -100,7 +83,7 @@ page = st.sidebar.radio(
 observations = load_data(get_db_version())
 
 if observations.empty:
-    st.warning("No observations loaded yet. Use 'Refresh Demo Data' to load the demo CSV.")
+    st.warning("No observations loaded yet. Refresh a live source to load data.")
     st.stop()
 
 latest_df = latest_observations(observations)

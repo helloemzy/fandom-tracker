@@ -10,7 +10,6 @@ __pycache__/
 
 # Keep data files, ignore everything else in data/
 data/.gitkeep
-!data/demo_observations.csv
 
 # Logs
 logs/
