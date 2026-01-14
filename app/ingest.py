@@ -15,6 +15,23 @@ def _normalize_key(value):
     return "".join(ch for ch in value.lower() if ch.isalnum())
 
 
+def _ensure_person(session, people_map, person_key, display_name):
+    person = people_map.get(person_key)
+    if person:
+        return person
+
+    person = Person(
+        person_key=person_key,
+        display_name=display_name,
+        category="Unknown",
+        country=None
+    )
+    session.add(person)
+    session.commit()
+    people_map[person_key] = person
+    return person
+
+
 def _seed_people(session, watchlist):
     existing = {p.person_key: p for p in session.query(Person).all()}
     for entry in watchlist:
@@ -145,12 +162,12 @@ def run_rss_ingest():
             if metric_key not in metrics:
                 continue
 
-            person_key = person_lookup.get(_normalize_key(entry["tag"]))
-            if not person_key or person_key not in people_map:
-                continue
+            normalized_tag = _normalize_key(entry["tag"])
+            person_key = person_lookup.get(normalized_tag, normalized_tag)
+            person = _ensure_person(session, people_map, person_key, entry["tag"])
 
             metric = metrics[metric_key]
-            key = (people_map[person_key].id, metric_key, entry["date"])
+            key = (person.id, metric_key, entry["date"])
             value_num = entry["value_num"]
             if key in observations:
                 current = observations[key]["value_num"]
@@ -160,7 +177,7 @@ def run_rss_ingest():
                     value_num = max(current, value_num)
 
             observations[key] = {
-                "person_id": people_map[person_key].id,
+                "person_id": person.id,
                 "metric_key": metric_key,
                 "pillar": metric["pillar"],
                 "source": metric["source"],
