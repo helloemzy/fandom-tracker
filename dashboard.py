@@ -59,7 +59,7 @@ kind, value = kind_map[request_type]
 payloads = {}
 errors = {}
 
-if request_type in {"Chart", "Artist chart"} and platform is None:
+if platform is None:
     for platform_key in all_platforms:
         payload, error = load_live_payload(kind, platform_key, value, refresh_key)
         if error:
