@@ -61,17 +61,27 @@ st.caption("Metrics-driven tracking across Impact, Fandom Power, and Value")
 st.sidebar.header("Data Controls")
 if st.sidebar.button("Refresh RSS Feeds"):
     with st.spinner("Fetching RSS metrics..."):
-        result = run_rss_ingest()
+        try:
+            result = run_rss_ingest()
+        except Exception as exc:
+            st.error("RSS refresh failed.")
+            st.exception(exc)
+            st.stop()
+
         st.cache_data.clear()
+        message = "Loaded {obs} RSS observations from {items} items (parsed {parsed}).".format(
+            obs=result["observations"],
+            items=result["items"],
+            parsed=result["parsed"]
+        )
         if result["observations"] == 0:
-            st.warning("No RSS data loaded. Check feed URLs and parser rules.")
+            st.warning(message)
         else:
-            st.success(
-                "Loaded {obs} RSS observations from {items} items.".format(
-                    obs=result["observations"],
-                    items=result["items"]
-                )
-            )
+            st.success(message)
+
+        st.session_state["rss_result"] = result
+        if result.get("errors"):
+            st.warning("Some RSS sources failed to load.")
         st.rerun()
 
 if st.sidebar.button("Refresh Last.fm Data"):
@@ -152,6 +162,24 @@ if page == "Overview":
                 .sort_values(["metric", "person"]),
                 use_container_width=True
             )
+
+    with st.expander("RSS Ingest Debug"):
+        result = st.session_state.get("rss_result")
+        if not result:
+            st.info("Refresh RSS Feeds to see ingest diagnostics.")
+        else:
+            st.write({
+                "items": result.get("items"),
+                "parsed": result.get("parsed"),
+                "observations": result.get("observations")
+            })
+            if result.get("errors"):
+                st.write("Errors:")
+                st.write(result["errors"])
+            if result.get("sample_titles"):
+                st.write("Sample titles:")
+                for title in result["sample_titles"]:
+                    st.write(f"- {title}")
 
     st.subheader("Metric Trend")
     metric_key = st.selectbox(

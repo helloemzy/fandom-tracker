@@ -120,12 +120,16 @@ def run_lastfm_ingest():
 
 
 def _fetch_rss_items(url):
-    response = requests.get(
-        url,
-        timeout=30,
-        headers={"User-Agent": "SignalIndexRSS/1.0"}
-    )
-    response.raise_for_status()
+    try:
+        response = requests.get(
+            url,
+            timeout=30,
+            headers={"User-Agent": "SignalIndexRSS/1.0"}
+        )
+        response.raise_for_status()
+    except Exception as exc:
+        return [], f"{type(exc).__name__}: {exc}"
+
     soup = BeautifulSoup(response.text, "lxml")
     items = []
     for item in soup.find_all("item"):
@@ -134,7 +138,7 @@ def _fetch_rss_items(url):
             "description": item.description.get_text() if item.description else "",
             "pubDate": item.pubDate.get_text(strip=True) if item.pubDate else ""
         })
-    return items
+    return items, None
 
 
 def run_rss_ingest():
@@ -158,13 +162,20 @@ def run_rss_ingest():
     observations = {}
     items_total = 0
     parsed_total = 0
+    errors = []
+    sample_titles = []
 
     for source in sources:
         url = source["url"]
-        items = _fetch_rss_items(url)
+        items, error = _fetch_rss_items(url)
+        if error:
+            errors.append({"source": source.get("label", url), "error": error})
+            continue
+
         items_total += len(items)
         parsed = parse_items(items)
         parsed_total += len(parsed)
+        sample_titles.extend([item["title"] for item in items[:3]])
         for entry in parsed:
             metric_key = entry["metric_key"]
             if metric_key not in metrics:
@@ -224,5 +235,7 @@ def run_rss_ingest():
     return {
         "items": items_total,
         "parsed": parsed_total,
-        "observations": rows_written
+        "observations": rows_written,
+        "errors": errors,
+        "sample_titles": sample_titles[:10]
     }
