@@ -49,7 +49,7 @@ def payload_to_df(payload):
 st.title("Signal Index")
 st.caption("Live Korea chart API data (no database).")
 
-platform = st.sidebar.selectbox("Platform", list(PLATFORMS.keys()))
+all_platforms = list(PLATFORMS.keys())
 request_type = st.sidebar.radio(
     "Endpoint",
     [
@@ -59,6 +59,16 @@ request_type = st.sidebar.radio(
         "Album songs"
     ]
 )
+
+platform = None
+if request_type in {"Chart", "Artist chart"}:
+    platform_choice = st.sidebar.selectbox(
+        "Platform",
+        ["All"] + all_platforms
+    )
+    platform = None if platform_choice == "All" else platform_choice
+else:
+    platform = st.sidebar.selectbox("Platform", all_platforms)
 
 artist_name = ""
 album_number = ""
@@ -80,20 +90,42 @@ kind_map = {
 }
 
 kind, value = kind_map[request_type]
-payload, error = load_live_payload(kind, platform, value, refresh_key)
+payloads = {}
+errors = {}
 
-if error:
-    st.error(f"Live fetch failed: {error}")
-elif request_type in {"Artist chart", "Artist albums"} and not artist_name:
+if request_type in {"Chart", "Artist chart"} and platform is None:
+    for platform_key in all_platforms:
+        payload, error = load_live_payload(kind, platform_key, value, refresh_key)
+        if error:
+            errors[platform_key] = error
+        else:
+            payloads[platform_key] = payload
+else:
+    payload, error = load_live_payload(kind, platform, value, refresh_key)
+    if error:
+        errors[platform] = error
+    else:
+        payloads[platform] = payload
+
+if request_type in {"Artist chart", "Artist albums"} and not artist_name:
     st.info("Enter an artist name to fetch data.")
 elif request_type == "Album songs" and not album_number:
     st.info("Enter an album number to fetch songs.")
 else:
-    chart_df = payload_to_df(payload)
-    if chart_df.empty:
+    if errors:
+        for platform_key, message in errors.items():
+            st.error(f"{platform_key} fetch failed: {message}")
+
+    if not payloads:
         st.info("No data returned.")
     else:
-        st.dataframe(chart_df, use_container_width=True)
+        for platform_key, payload in payloads.items():
+            st.subheader(f"{platform_key.capitalize()} Chart")
+            chart_df = payload_to_df(payload)
+            if chart_df.empty:
+                st.info("No data returned.")
+            else:
+                st.dataframe(chart_df, use_container_width=True)
 
-with st.expander("Raw response"):
-    st.json(payload)
+            with st.expander(f"Raw response: {platform_key}"):
+                st.json(payload)
