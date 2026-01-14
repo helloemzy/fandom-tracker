@@ -37,18 +37,26 @@ def _ensure_person(session, people_map, person_key, display_name):
 
 def _seed_people(session, watchlist):
     existing = {p.person_key: p for p in session.query(Person).all()}
+    seen_watchlist = set()
     for entry in watchlist:
-        person_key = entry["person_key"]
+        person_key = entry.get("person_key")
+        display_name = entry.get("display_name")
+        if not person_key or not display_name:
+            continue
+
+        if person_key in seen_watchlist:
+            continue
+        seen_watchlist.add(person_key)
         if person_key in existing:
             person = existing[person_key]
-            person.display_name = entry["display_name"]
+            person.display_name = display_name
             person.category = entry.get("category")
             person.country = entry.get("country")
         else:
             session.add(
                 Person(
                     person_key=person_key,
-                    display_name=entry["display_name"],
+                    display_name=display_name,
                     category=entry.get("category"),
                     country=entry.get("country")
                 )
