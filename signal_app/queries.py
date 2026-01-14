@@ -1,6 +1,6 @@
 import pandas as pd
 from datetime import date
-from signal_app.db import get_engine
+from db import get_engine
 
 
 def load_observations_df(engine=None):

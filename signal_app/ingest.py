@@ -1,8 +1,8 @@
 import json
 from sqlalchemy import delete
-from signal_app.config import load_metrics_config, load_watchlist, load_rss_sources
-from signal_app.db import get_engine, get_session, init_db, Person, Observation
-from signal_app.metrics import normalize_value
+from config import load_metrics_config, load_watchlist, load_rss_sources
+from db import get_engine, get_session, init_db, Person, Observation
+from metrics import normalize_value
 from connectors.lastfm import fetch_artist_stats
 from datetime import date
 from sqlalchemy import and_
