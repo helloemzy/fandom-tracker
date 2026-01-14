@@ -1,0 +1,25 @@
+people:
+  - person_key: newjeans
+    display_name: NewJeans
+    category: K-pop
+    country: KR
+
+  - person_key: bts
+    display_name: BTS
+    category: K-pop
+    country: KR
+
+  - person_key: blackpink
+    display_name: Blackpink
+    category: K-pop
+    country: KR
+
+  - person_key: taylor_swift
+    display_name: Taylor Swift
+    category: Western
+    country: US
+
+  - person_key: bad_bunny
+    display_name: Bad Bunny
+    category: Western
+    country: PR

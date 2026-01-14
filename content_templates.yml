@@ -1,0 +1,12 @@
+templates:
+  - template_key: milestone_peak
+    label: New peak alert
+    body: "{name} just hit a new peak on {metric}: {value} as of {date}."
+
+  - template_key: daily_momentum
+    label: Daily momentum
+    body: "{name} moved on {metric} to {value} today. Keep watching the trend."
+
+  - template_key: pillar_highlight
+    label: Pillar highlight
+    body: "{name} is leading in {pillar} with {metric} at {value}."

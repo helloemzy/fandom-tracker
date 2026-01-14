@@ -1,0 +1,170 @@
+pillars:
+  impact: Digital & Streaming (Impact)
+  fandom_power: Physical Sales (Fandom Power)
+  value: Commercial & Brand (Value)
+
+metrics:
+  # Impact
+  realtime_rank:
+    display_name: Real-time Rank
+    pillar: impact
+    source: Melon
+    unit: rank_1_100
+    directionality: lower_is_better
+    aggregation: last
+    cadence: daily
+
+  monthly_listeners:
+    display_name: Monthly Listeners
+    pillar: impact
+    source: Spotify
+    unit: count
+    directionality: higher_is_better
+    aggregation: last
+    cadence: daily
+
+  unique_listeners_24h:
+    display_name: 24h Unique Listeners
+    pillar: impact
+    source: Melon
+    unit: count
+    directionality: higher_is_better
+    aggregation: last
+    cadence: daily
+
+  filtered_streams:
+    display_name: Filtered Streams
+    pillar: impact
+    source: Spotify
+    unit: count
+    directionality: higher_is_better
+    aggregation: sum
+    cadence: daily
+
+  ugc_audio_usage:
+    display_name: UGC Audio Usage
+    pillar: impact
+    source: YouTube
+    unit: count
+    directionality: higher_is_better
+    aggregation: last
+    cadence: daily
+
+  official_mv_views:
+    display_name: Official MV Views
+    pillar: impact
+    source: YouTube
+    unit: count
+    directionality: higher_is_better
+    aggregation: last
+    cadence: daily
+
+  digital_index:
+    display_name: Digital Index
+    pillar: impact
+    source: Circle Chart
+    unit: composite_score
+    directionality: higher_is_better
+    aggregation: last
+    cadence: daily
+
+  # Fandom Power
+  retail_sales:
+    display_name: Retail Sales
+    pillar: fandom_power
+    source: Circle Chart
+    unit: units
+    directionality: higher_is_better
+    aggregation: sum
+    cadence: daily
+
+  cbar_group_buy:
+    display_name: C-Bar Group Buy
+    pillar: fandom_power
+    source: Fan Tracking
+    unit: units
+    directionality: higher_is_better
+    aggregation: sum
+    cadence: daily
+
+  chodong_first_week:
+    display_name: Chodong (1st Week)
+    pillar: fandom_power
+    source: Hanteo
+    unit: units
+    directionality: higher_is_better
+    aggregation: sum
+    cadence: daily
+
+  realtime_pos_sales:
+    display_name: Real-time POS Sales
+    pillar: fandom_power
+    source: Hanteo
+    unit: units
+    directionality: higher_is_better
+    aggregation: sum
+    cadence: daily
+
+  total_shipments:
+    display_name: Total Shipments
+    pillar: fandom_power
+    source: Circle Chart
+    unit: units
+    directionality: higher_is_better
+    aggregation: sum
+    cadence: daily
+
+  # Value
+  certification_eligibility:
+    display_name: Certification Eligibility
+    pillar: value
+    source: X / Aggregators
+    unit: percent
+    directionality: higher_is_better
+    aggregation: last
+    cadence: daily
+
+  media_index:
+    display_name: Media Index
+    pillar: value
+    source: BRI Korea
+    unit: score
+    directionality: higher_is_better
+    aggregation: last
+    cadence: daily
+
+  participation_index:
+    display_name: Participation Index
+    pillar: value
+    source: BRI Korea
+    unit: score
+    directionality: higher_is_better
+    aggregation: last
+    cadence: daily
+
+  total_brand_score:
+    display_name: Total Brand Score
+    pillar: value
+    source: BRI Korea
+    unit: composite_score
+    directionality: higher_is_better
+    aggregation: last
+    cadence: daily
+
+  brand_deal_count:
+    display_name: Brand Deal Count
+    pillar: value
+    source: StarThink
+    unit: count
+    directionality: higher_is_better
+    aggregation: last
+    cadence: daily
+
+  brand_tier:
+    display_name: Brand Tier
+    pillar: value
+    source: StarThink
+    unit: ordinal
+    directionality: lower_is_better
+    aggregation: last
+    cadence: daily
