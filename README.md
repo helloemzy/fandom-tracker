@@ -39,6 +39,7 @@ nano .env  # or open in any text editor
 **You need:**
 - **X (Twitter) API keys** → Get at [developer.twitter.com](https://developer.twitter.com/en/portal/dashboard)
 - **YouTube API key** → Get at [console.cloud.google.com](https://console.cloud.google.com/apis/credentials)
+- **Korea chart API base URL (optional)** → Defaults to the hosted API, override in `.env` if needed
 
 **See "Getting API Keys" section below for detailed instructions.**
 

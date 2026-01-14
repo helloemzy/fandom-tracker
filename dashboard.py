@@ -12,6 +12,7 @@ if APP_DIR not in sys.path:
 from config import load_metrics_config, load_watchlist, load_templates
 from db import get_engine, init_db
 from ingest import run_lastfm_ingest, run_rss_ingest, run_chart_api_ingest
+from connectors.korea_chart_api import fetch_chart, fetch_artist_chart, PLATFORMS
 from queries import (
     load_observations_df,
     latest_observations,
@@ -33,6 +34,16 @@ def load_data(version_key=None):
     return load_observations_df(engine)
 
 
+@st.cache_data(ttl=60)
+def load_live_chart(platform, artist_name=None, refresh_key=0):
+    try:
+        if artist_name:
+            return fetch_artist_chart(platform, artist_name), None
+        return fetch_chart(platform), None
+    except Exception as exc:
+        return None, f"{type(exc).__name__}: {exc}"
+
+
 def get_db_version():
     db_path = os.getenv("SIGNAL_INDEX_DB", "data/app.db")
     return os.path.getmtime(db_path) if os.path.exists(db_path) else None
@@ -52,6 +63,19 @@ def format_value(value_num, value_text, unit):
     if unit in {"score", "composite_score"}:
         return f"{value_num:.1f}"
     return f"{value_num}"
+
+
+def payload_to_df(payload):
+    if not payload:
+        return pd.DataFrame()
+    if isinstance(payload, list):
+        return pd.DataFrame(payload)
+    if isinstance(payload, dict):
+        data = payload.get("data")
+        if isinstance(data, list):
+            return pd.DataFrame(data)
+        return pd.DataFrame([payload])
+    return pd.DataFrame()
 
 
 engine = init_db(get_engine())
@@ -113,6 +137,7 @@ page = st.sidebar.radio(
     "Navigate",
     [
         "Overview",
+        "Live Charts",
         "Artist Detail",
         "Comparisons",
         "Content Planner",
@@ -218,6 +243,35 @@ if page == "Overview":
         if metrics_config[metric_key]["directionality"] == "lower_is_better":
             fig.update_yaxes(autorange="reversed")
         st.plotly_chart(fig, use_container_width=True)
+
+elif page == "Live Charts":
+    st.subheader("Live Charts")
+    st.caption("Reads the Korea chart API directly. Results are not stored.")
+
+    platform = st.selectbox("Platform", list(PLATFORMS.keys()))
+    artist_name = st.text_input("Artist name (optional)", value="").strip()
+
+    if st.button("Refresh Live Charts"):
+        st.session_state["live_refresh"] = st.session_state.get("live_refresh", 0) + 1
+
+    refresh_key = st.session_state.get("live_refresh", 0)
+    payload, error = load_live_chart(
+        platform,
+        artist_name or None,
+        refresh_key
+    )
+
+    if error:
+        st.error(f"Live chart fetch failed: {error}")
+    else:
+        chart_df = payload_to_df(payload)
+        if chart_df.empty:
+            st.info("No chart data returned.")
+        else:
+            st.dataframe(chart_df, use_container_width=True)
+
+    with st.expander("Raw response"):
+        st.json(payload)
 
 elif page == "Artist Detail":
     st.subheader("Artist Detail")
