@@ -1,0 +1,5 @@
+sources:
+  - source_key: koreansales_twt
+    label: KOREAN SALES / @koreansales_twt
+    url: https://rss.app/feeds/dsA4TTlK9LcAzMYK.xml
+    parser: koreansales_twt

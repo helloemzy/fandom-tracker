@@ -6,7 +6,7 @@ import streamlit as st
 
 from app.config import load_metrics_config, load_watchlist, load_templates
 from app.db import get_engine, init_db
-from app.ingest import run_lastfm_ingest
+from app.ingest import run_lastfm_ingest, run_rss_ingest
 from app.queries import (
     load_observations_df,
     latest_observations,
@@ -59,6 +59,16 @@ st.title("Signal Index")
 st.caption("Metrics-driven tracking across Impact, Fandom Power, and Value")
 
 st.sidebar.header("Data Controls")
+if st.sidebar.button("Refresh RSS Feeds"):
+    with st.spinner("Fetching RSS metrics..."):
+        rows = run_rss_ingest()
+        st.cache_data.clear()
+        if rows == 0:
+            st.warning("No RSS data loaded. Check feed URLs and parser rules.")
+        else:
+            st.success(f"Loaded {rows} RSS observations.")
+        st.rerun()
+
 if st.sidebar.button("Refresh Last.fm Data"):
     with st.spinner("Fetching Last.fm stats..."):
         rows = run_lastfm_ingest()

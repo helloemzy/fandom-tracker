@@ -1,11 +1,18 @@
 import json
 from sqlalchemy import delete
-from app.config import load_metrics_config, load_watchlist
+from app.config import load_metrics_config, load_watchlist, load_rss_sources
 from app.db import get_engine, get_session, init_db, Person, Observation
 from app.metrics import normalize_value
 from connectors.lastfm import fetch_artist_stats
 from datetime import date
 from sqlalchemy import and_
+from connectors.rss_koreansales import parse_items
+import requests
+from bs4 import BeautifulSoup
+
+
+def _normalize_key(value):
+    return "".join(ch for ch in value.lower() if ch.isalnum())
 
 
 def _seed_people(session, watchlist):
@@ -89,6 +96,103 @@ def run_lastfm_ingest():
             )
             session.add(observation)
             rows_written += 1
+
+    session.commit()
+    session.close()
+    return rows_written
+
+
+def _fetch_rss_items(url):
+    response = requests.get(url, timeout=30)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "lxml")
+    items = []
+    for item in soup.find_all("item"):
+        items.append({
+            "title": item.title.get_text(strip=True) if item.title else "",
+            "description": item.description.get_text() if item.description else "",
+            "pubDate": item.pubDate.get_text(strip=True) if item.pubDate else ""
+        })
+    return items
+
+
+def run_rss_ingest():
+    engine = init_db(get_engine())
+    session = get_session(engine)
+
+    _, metrics = load_metrics_config()
+    sources = load_rss_sources()
+    watchlist = load_watchlist()
+
+    _seed_people(session, watchlist)
+
+    people_map = {p.person_key: p for p in session.query(Person).all()}
+    person_lookup = {}
+    for person in watchlist:
+        display_name = person["display_name"]
+        person_key = person["person_key"]
+        person_lookup[_normalize_key(display_name)] = person_key
+        person_lookup[_normalize_key(person_key)] = person_key
+
+    observations = {}
+
+    for source in sources:
+        url = source["url"]
+        items = _fetch_rss_items(url)
+        parsed = parse_items(items)
+        for entry in parsed:
+            metric_key = entry["metric_key"]
+            if metric_key not in metrics:
+                continue
+
+            person_key = person_lookup.get(_normalize_key(entry["tag"]))
+            if not person_key or person_key not in people_map:
+                continue
+
+            metric = metrics[metric_key]
+            key = (people_map[person_key].id, metric_key, entry["date"])
+            value_num = entry["value_num"]
+            if key in observations:
+                current = observations[key]["value_num"]
+                if metric["directionality"] == "lower_is_better":
+                    value_num = min(current, value_num)
+                else:
+                    value_num = max(current, value_num)
+
+            observations[key] = {
+                "person_id": people_map[person_key].id,
+                "metric_key": metric_key,
+                "pillar": metric["pillar"],
+                "source": metric["source"],
+                "date": entry["date"],
+                "value_num": value_num,
+                "unit": metric["unit"]
+            }
+
+    rows_written = 0
+    for (_, metric_key, date_value), data in observations.items():
+        session.execute(
+            delete(Observation).where(
+                and_(
+                    Observation.person_id == data["person_id"],
+                    Observation.metric_key == metric_key,
+                    Observation.date == date_value
+                )
+            )
+        )
+        observation = Observation(
+            person_id=data["person_id"],
+            metric_key=metric_key,
+            pillar=data["pillar"],
+            source=data["source"],
+            date=data["date"],
+            value_num=data["value_num"],
+            value_text=None,
+            unit=data["unit"],
+            raw_json=json.dumps({"rss": True})
+        )
+        session.add(observation)
+        rows_written += 1
 
     session.commit()
     session.close()
