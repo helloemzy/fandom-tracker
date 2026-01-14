@@ -11,7 +11,7 @@ if APP_DIR not in sys.path:
 
 from config import load_metrics_config, load_watchlist, load_templates
 from db import get_engine, init_db
-from ingest import run_lastfm_ingest, run_rss_ingest
+from ingest import run_lastfm_ingest, run_rss_ingest, run_chart_api_ingest
 from queries import (
     load_observations_df,
     latest_observations,
@@ -64,6 +64,16 @@ st.title("Signal Index")
 st.caption("Metrics-driven tracking across Impact, Fandom Power, and Value")
 
 st.sidebar.header("Data Controls")
+if st.sidebar.button("Refresh Chart API"):
+    with st.spinner("Fetching Melon/Genie/Vibe/Bugs charts..."):
+        rows = run_chart_api_ingest()
+        st.cache_data.clear()
+        if rows == 0:
+            st.warning("No chart data loaded. Check API base URL and availability.")
+        else:
+            st.success(f"Loaded {rows} chart observations.")
+        st.rerun()
+
 if st.sidebar.button("Refresh RSS Feeds"):
     with st.spinner("Fetching RSS metrics..."):
         try:

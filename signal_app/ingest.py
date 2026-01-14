@@ -4,6 +4,7 @@ from config import load_metrics_config, load_watchlist, load_rss_sources
 from db import get_engine, get_session, init_db, Person, Observation
 from metrics import normalize_value
 from connectors.lastfm import fetch_artist_stats
+from connectors.korea_chart_api import fetch_chart, PLATFORMS
 from datetime import date
 from sqlalchemy import and_
 from connectors.rss_koreansales import parse_items
@@ -268,3 +269,64 @@ def run_rss_ingest():
         "errors": errors,
         "sample_titles": sample_titles[:10]
     }
+
+
+def run_chart_api_ingest():
+    engine = init_db(get_engine())
+    session = get_session(engine)
+
+    _, metrics = load_metrics_config()
+    watchlist = load_watchlist()
+
+    _seed_people(session, watchlist)
+
+    people_map = {p.person_key: p for p in session.query(Person).all()}
+    today = date.today()
+    rows_written = 0
+
+    for platform, metric_key in PLATFORMS.items():
+        if metric_key not in metrics:
+            continue
+
+        payload = fetch_chart(platform)
+        if not payload:
+            continue
+
+        metric = metrics[metric_key]
+
+        for entry in payload:
+            artist_name = entry.get("artistName")
+            rank = entry.get("rank")
+            if not artist_name or rank is None:
+                continue
+
+            normalized_tag = _normalize_key(artist_name)
+            person = _ensure_person(session, people_map, normalized_tag, artist_name)
+
+            session.execute(
+                delete(Observation).where(
+                    and_(
+                        Observation.person_id == person.id,
+                        Observation.metric_key == metric_key,
+                        Observation.date == today
+                    )
+                )
+            )
+
+            observation = Observation(
+                person_id=person.id,
+                metric_key=metric_key,
+                pillar=metric["pillar"],
+                source=metric["source"],
+                date=today,
+                value_num=rank,
+                value_text=None,
+                unit=metric["unit"],
+                raw_json=json.dumps(entry)
+            )
+            session.add(observation)
+            rows_written += 1
+
+    session.commit()
+    session.close()
+    return rows_written

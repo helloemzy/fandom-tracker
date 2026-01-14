@@ -14,6 +14,33 @@ metrics:
     aggregation: last
     cadence: daily
 
+  genie_realtime_rank:
+    display_name: Genie Real-time Rank
+    pillar: impact
+    source: Genie
+    unit: rank_1_100
+    directionality: lower_is_better
+    aggregation: last
+    cadence: daily
+
+  vibe_realtime_rank:
+    display_name: Vibe Real-time Rank
+    pillar: impact
+    source: Vibe
+    unit: rank_1_100
+    directionality: lower_is_better
+    aggregation: last
+    cadence: daily
+
+  bugs_realtime_rank:
+    display_name: Bugs Real-time Rank
+    pillar: impact
+    source: Bugs
+    unit: rank_1_100
+    directionality: lower_is_better
+    aggregation: last
+    cadence: daily
+
   monthly_listeners:
     display_name: Monthly Listeners
     pillar: impact
