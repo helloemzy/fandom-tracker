@@ -299,10 +299,16 @@ def run_chart_api_ingest():
         payload = fetch_chart(platform)
         if not payload:
             continue
+        if isinstance(payload, dict):
+            payload = payload.get("data", [])
+        if not isinstance(payload, list):
+            continue
 
         metric = metrics[metric_key]
 
         for entry in payload:
+            if not isinstance(entry, dict):
+                continue
             artist_name = entry.get("artistName")
             rank = entry.get("rank")
             if not artist_name or rank is None:
