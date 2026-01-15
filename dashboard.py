@@ -13,18 +13,22 @@ st.set_page_config(
 
 
 @st.cache_data(ttl=60)
-def load_live_payload(kind, platform, value, refresh_key=0):
+def load_korea_payload(platform, refresh_key=0):
     try:
-        if kind == "chart":
-            return fetch_chart(platform), None
-        if kind == "billboard":
-            options = value or {}
-            return fetch_billboard_chart(
-                platform,
-                date=options.get("date"),
-                year=options.get("year")
-            ), None
-        return None, "Unknown request type."
+        return fetch_chart(platform), None
+    except Exception as exc:
+        return None, f"{type(exc).__name__}: {exc}"
+
+
+@st.cache_data(ttl=21600)
+def load_billboard_payload(chart_name, options, refresh_key=0):
+    try:
+        options = options or {}
+        return fetch_billboard_chart(
+            chart_name,
+            date=options.get("date"),
+            year=options.get("year")
+        ), None
     except Exception as exc:
         return None, f"{type(exc).__name__}: {exc}"
 
@@ -97,8 +101,9 @@ if platform is None:
                 "date": billboard_date or None,
                 "year": None if billboard_date else (billboard_year or None)
             }
-            value = options
-        payload, error = load_live_payload(kind, platform_key, value, refresh_key)
+            payload, error = load_billboard_payload(platform_key, options, refresh_key)
+        else:
+            payload, error = load_korea_payload(platform_key, refresh_key)
         if error:
             errors[platform_key] = error
         else:
@@ -109,8 +114,9 @@ else:
             "date": billboard_date or None,
             "year": None if billboard_date else (billboard_year or None)
         }
-        value = options
-    payload, error = load_live_payload(kind, platform, value, refresh_key)
+        payload, error = load_billboard_payload(platform, options, refresh_key)
+    else:
+        payload, error = load_korea_payload(platform, refresh_key)
     if error:
         errors[platform] = error
     else:
