@@ -53,7 +53,7 @@ st.title("Signal Index")
 st.caption("Live Korea + Billboard chart API data (no database).")
 
 all_platforms = list(PLATFORMS.keys())
-request_type = st.sidebar.selectbox(
+request_type = st.sidebar.radio(
     "Data Source",
     ["Korean Music Charts", "Billboard Charts"]
 )
@@ -64,15 +64,15 @@ if request_type == "Korean Music Charts":
         ["All"] + all_platforms
     )
     platform = None if platform_choice == "All" else platform_choice
-    chart_choice = None
     billboard_date = None
     billboard_year = None
 else:
-    chart_choice = st.sidebar.selectbox(
-        "Chart",
-        ["All"] + BILLBOARD_CHARTS
+    chart_choice = st.sidebar.radio(
+        "Billboard Charts",
+        ["Select a chart..."] + BILLBOARD_CHARTS,
+        index=0
     )
-    platform = None if chart_choice == "All" else chart_choice
+    platform = None if chart_choice == "Select a chart..." else chart_choice
     billboard_date = st.sidebar.text_input("Billboard date (YYYY-MM-DD)", value="").strip()
     billboard_year = st.sidebar.text_input("Billboard year (YYYY)", value="").strip()
 
@@ -90,7 +90,9 @@ kind, value = kind_map[request_type]
 payloads = {}
 errors = {}
 
-if platform is None:
+if platform is None and request_type == "Billboard Charts":
+    st.info("Select a Billboard chart from the sidebar to load data.")
+elif platform is None:
     if request_type == "Korean Music Charts":
         platform_keys = all_platforms
     else:
