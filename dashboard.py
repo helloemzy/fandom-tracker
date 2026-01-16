@@ -3,6 +3,7 @@ import streamlit as st
 
 from connectors.billboard_api import BILLBOARD_CHARTS, fetch_chart as fetch_billboard_chart
 from connectors.korea_chart_api import fetch_chart, PLATFORMS
+from connectors.youtube_music_charts_api import fetch_music_charts
 
 
 st.set_page_config(
@@ -33,6 +34,18 @@ def load_billboard_payload(chart_name, options, refresh_key=0):
         return None, f"{type(exc).__name__}: {exc}"
 
 
+@st.cache_data(ttl=900)
+def load_youtube_payload(region_code, max_results, api_key, refresh_key=0):
+    try:
+        return fetch_music_charts(
+            region_code=region_code,
+            max_results=max_results,
+            api_key=api_key
+        ), None
+    except Exception as exc:
+        return None, f"{type(exc).__name__}: {exc}"
+
+
 def payload_to_df(payload):
     if not payload:
         return pd.DataFrame()
@@ -55,7 +68,7 @@ st.caption("Live Korea + Billboard chart API data (no database).")
 all_platforms = list(PLATFORMS.keys())
 request_type = st.sidebar.radio(
     "Data Source",
-    ["Korean Music Charts", "Billboard Charts"]
+    ["Korean Music Charts", "Billboard Charts", "YouTube Music Charts"]
 )
 
 if request_type == "Korean Music Charts":
@@ -66,27 +79,32 @@ if request_type == "Korean Music Charts":
     platform = None if platform_choice == "All" else platform_choice
     billboard_date = None
     billboard_year = None
+    youtube_region = None
+    youtube_max_results = None
 else:
-    chart_choice = st.sidebar.radio(
-        "Billboard Charts",
-        ["Select a chart..."] + BILLBOARD_CHARTS,
-        index=0
-    )
-    platform = None if chart_choice == "Select a chart..." else chart_choice
-    billboard_date = st.sidebar.text_input("Billboard date (YYYY-MM-DD)", value="").strip()
-    billboard_year = st.sidebar.text_input("Billboard year (YYYY)", value="").strip()
+    billboard_date = None
+    billboard_year = None
+    if request_type == "Billboard Charts":
+        chart_choice = st.sidebar.radio(
+            "Billboard Charts",
+            ["Select a chart..."] + BILLBOARD_CHARTS,
+            index=0
+        )
+        platform = None if chart_choice == "Select a chart..." else chart_choice
+        billboard_date = st.sidebar.text_input("Billboard date (YYYY-MM-DD)", value="").strip()
+        billboard_year = st.sidebar.text_input("Billboard year (YYYY)", value="").strip()
+        youtube_region = None
+        youtube_max_results = None
+    else:
+        platform = "youtube"
+        youtube_region = st.sidebar.text_input("Region code", value="US").strip().upper()
+        youtube_max_results = st.sidebar.slider("Max results", min_value=10, max_value=50, value=50, step=5)
 
 if st.sidebar.button("Refresh"):
     st.session_state["live_refresh"] = st.session_state.get("live_refresh", 0) + 1
 
 refresh_key = st.session_state.get("live_refresh", 0)
 
-kind_map = {
-    "Korean Music Charts": ("chart", None),
-    "Billboard Charts": ("billboard", None)
-}
-
-kind, value = kind_map[request_type]
 payloads = {}
 errors = {}
 
@@ -124,6 +142,19 @@ else:
             "year": None if billboard_date else (billboard_year or None)
         }
         payload, error = load_billboard_payload(platform, options, refresh_key)
+    elif request_type == "YouTube Music Charts":
+        api_key = None
+        try:
+            api_key = st.secrets.get("YOUTUBE_API_KEY")
+        except Exception:
+            api_key = None
+        payload, error = load_youtube_payload(
+            youtube_region or "US",
+            youtube_max_results or 50,
+            api_key,
+            refresh_key
+        )
+        platform = "YouTube Music Charts"
     else:
         payload, error = load_korea_payload(platform, refresh_key)
     if error:
@@ -144,6 +175,8 @@ else:
             date = payload.get("date")
             subtitle = f"{title} ({date})" if date else title
             st.subheader(subtitle)
+        elif request_type == "YouTube Music Charts":
+            st.subheader(platform_key)
         else:
             st.subheader(f"{platform_key.capitalize()} Chart")
         chart_df = payload_to_df(payload)
