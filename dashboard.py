@@ -95,7 +95,12 @@ if platform is None:
         platform_keys = all_platforms
     else:
         platform_keys = BILLBOARD_CHARTS
-    for platform_key in platform_keys:
+    total = len(platform_keys)
+    progress = st.progress(0)
+    status = st.empty()
+    for current, platform_key in enumerate(platform_keys, start=1):
+        status.text(f"Loading {platform_key} ({current}/{total})...")
+        progress.progress(current / total)
         if request_type == "Billboard Charts":
             options = {
                 "date": billboard_date or None,
@@ -108,6 +113,8 @@ if platform is None:
             errors[platform_key] = error
         else:
             payloads[platform_key] = payload
+    status.empty()
+    progress.empty()
 else:
     if request_type == "Billboard Charts":
         options = {
