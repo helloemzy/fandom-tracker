@@ -146,6 +146,77 @@ fandom-tracker/
 
 ---
 
+## 🌐 Live Chart APIs (Dashboard)
+
+The Streamlit dashboard pulls live chart data directly from these APIs:
+
+### Korea Chart API
+- **URL template:** `https://korea-music-chart-api-autumn-sun-1261.fly.dev/{platform}/chart`
+- **Env override:** `KOREA_CHART_API_BASE_URL`
+- **Sample response (trimmed):**
+```json
+{
+  "data": [
+    {
+      "rank": 1,
+      "artistName": "화사 (HWASA)",
+      "title": "Good Goodbye",
+      "albumName": "Good Goodbye",
+      "albumArt": "https://cdnimg.melon.co.kr/...",
+      "songNumber": "600287375"
+    }
+  ]
+}
+```
+
+### Billboard Charts API
+- **URL template:** `https://billboard-charts.fly.dev/chart/{chart_name}?date=YYYY-MM-DD|year=YYYY`
+- **Env override:** `BILLBOARD_CHART_API_BASE_URL`
+- **Sample response (trimmed):**
+```json
+{
+  "name": "hot-100",
+  "title": "Billboard Hot 100™",
+  "date": "2024-08-10",
+  "entries": [
+    {
+      "rank": 1,
+      "title": "A Bar Song (Tipsy)",
+      "artist": "Shaboozey",
+      "weeks": 16,
+      "lastPos": 1,
+      "peakPos": 1,
+      "isNew": false,
+      "image": null
+    }
+  ]
+}
+```
+
+### YouTube Music Charts (YouTube Data API)
+- **URL:** `https://www.googleapis.com/youtube/v3/videos`
+- **Params:** `part=snippet,statistics&chart=mostPopular&videoCategoryId=10&regionCode=US&maxResults=50`
+- **Env:** `YOUTUBE_API_KEY`
+- **Sample response (trimmed):**
+```json
+{
+  "data": [
+    {
+      "rank": 1,
+      "title": "Video Title",
+      "artist": "Channel Title",
+      "video_id": "abcd1234",
+      "views": 1234567,
+      "likes": 8901,
+      "published_at": "2024-08-01T12:34:56Z",
+      "thumbnail": "https://i.ytimg.com/..."
+    }
+  ]
+}
+```
+
+---
+
 ## 🔑 Getting API Keys
 
 ### X (Twitter) API
