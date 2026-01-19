@@ -95,6 +95,26 @@ def load_comeback_feed(csv_path="data/comeback_feed.csv"):
     return df
 
 
+@st.cache_data(ttl=900)
+def load_spotify_global_daily(csv_path="data/spotify_global_daily_latest.csv"):
+    try:
+        df = pd.read_csv(csv_path)
+    except FileNotFoundError:
+        return pd.DataFrame()
+    except Exception as exc:
+        st.error(f"Spotify chart load failed: {type(exc).__name__}: {exc}")
+        return pd.DataFrame()
+
+    if df.empty:
+        return df
+
+    df["streams"] = pd.to_numeric(df.get("streams"), errors="coerce")
+    df["delta_streams"] = pd.to_numeric(df.get("delta_streams"), errors="coerce")
+    df["delta_rank"] = pd.to_numeric(df.get("delta_rank"), errors="coerce")
+    df = df.sort_values("rank", ascending=True)
+    return df
+
+
 st.title("Signal Index")
 st.caption("Live Korea + Billboard + YouTube + Last.fm chart API data (no database).")
 
@@ -264,3 +284,14 @@ if comeback_df.empty:
 else:
     columns = [col for col in ["pub_date", "title", "link", "source"] if col in comeback_df.columns]
     st.dataframe(comeback_df[columns].head(50), use_container_width=True)
+
+st.subheader("Spotify Global Daily (Kworb)")
+spotify_df = load_spotify_global_daily()
+if spotify_df.empty:
+    st.info("No Spotify chart data yet. Run 'python update_spotify_charts.py' to populate.")
+else:
+    columns = [
+        col for col in ["rank", "artist", "title", "streams", "delta_streams", "delta_rank"]
+        if col in spotify_df.columns
+    ]
+    st.dataframe(spotify_df[columns].head(50), use_container_width=True)
