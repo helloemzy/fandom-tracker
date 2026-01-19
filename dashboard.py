@@ -3,6 +3,7 @@ import streamlit as st
 
 from connectors.billboard_api import BILLBOARD_CHARTS, fetch_chart as fetch_billboard_chart
 from connectors.korea_chart_api import fetch_chart, PLATFORMS
+from connectors.lastfm_api import fetch_top_artists, fetch_top_tracks
 from connectors.youtube_music_charts_api import fetch_music_charts
 
 
@@ -46,6 +47,18 @@ def load_youtube_payload(region_code, max_results, api_key, refresh_key=0):
         return None, f"{type(exc).__name__}: {exc}"
 
 
+@st.cache_data(ttl=3600)
+def load_lastfm_payload(chart_type, limit, period, api_key, refresh_key=0):
+    try:
+        if chart_type == "Top Artists":
+            return fetch_top_artists(limit=limit, period=period, api_key=api_key), None
+        if chart_type == "Top Tracks":
+            return fetch_top_tracks(limit=limit, period=period, api_key=api_key), None
+        return None, "Unknown Last.fm chart type."
+    except Exception as exc:
+        return None, f"{type(exc).__name__}: {exc}"
+
+
 def payload_to_df(payload):
     if not payload:
         return pd.DataFrame()
@@ -83,12 +96,12 @@ def load_comeback_feed(csv_path="data/comeback_feed.csv"):
 
 
 st.title("Signal Index")
-st.caption("Live Korea + Billboard chart API data (no database).")
+st.caption("Live Korea + Billboard + YouTube + Last.fm chart API data (no database).")
 
 all_platforms = list(PLATFORMS.keys())
 request_type = st.sidebar.radio(
     "Data Source",
-    ["Korean Music Charts", "Billboard Charts", "YouTube Music Charts"]
+    ["Korean Music Charts", "Billboard Charts", "YouTube Music Charts", "Last.fm Charts"]
 )
 
 if request_type == "Korean Music Charts":
@@ -101,6 +114,9 @@ if request_type == "Korean Music Charts":
     billboard_year = None
     youtube_region = None
     youtube_max_results = None
+    lastfm_chart_type = None
+    lastfm_limit = None
+    lastfm_period = None
 else:
     billboard_date = None
     billboard_year = None
@@ -115,10 +131,27 @@ else:
         billboard_year = st.sidebar.text_input("Billboard year (YYYY)", value="").strip()
         youtube_region = None
         youtube_max_results = None
-    else:
+        lastfm_chart_type = None
+        lastfm_limit = None
+        lastfm_period = None
+    elif request_type == "YouTube Music Charts":
         platform = "youtube"
         youtube_region = st.sidebar.text_input("Region code", value="US").strip().upper()
         youtube_max_results = st.sidebar.slider("Max results", min_value=10, max_value=50, value=50, step=5)
+        lastfm_chart_type = None
+        lastfm_limit = None
+        lastfm_period = None
+    else:
+        platform = "lastfm"
+        lastfm_chart_type = st.sidebar.radio("Last.fm Chart", ["Top Artists", "Top Tracks"])
+        lastfm_limit = st.sidebar.slider("Max results", min_value=10, max_value=50, value=50, step=5)
+        lastfm_period = st.sidebar.selectbox(
+            "Period",
+            ["7day", "1month", "3month", "6month", "12month", "overall"],
+            index=0
+        )
+        youtube_region = None
+        youtube_max_results = None
 
 if st.sidebar.button("Refresh"):
     st.session_state["live_refresh"] = st.session_state.get("live_refresh", 0) + 1
@@ -175,6 +208,20 @@ else:
             refresh_key
         )
         platform = "YouTube Music Charts"
+    elif request_type == "Last.fm Charts":
+        api_key = None
+        try:
+            api_key = st.secrets.get("LASTFM_API_KEY")
+        except Exception:
+            api_key = None
+        payload, error = load_lastfm_payload(
+            lastfm_chart_type or "Top Artists",
+            lastfm_limit or 50,
+            lastfm_period or "7day",
+            api_key,
+            refresh_key
+        )
+        platform = "Last.fm Charts"
     else:
         payload, error = load_korea_payload(platform, refresh_key)
     if error:
@@ -196,6 +243,8 @@ else:
             subtitle = f"{title} ({date})" if date else title
             st.subheader(subtitle)
         elif request_type == "YouTube Music Charts":
+            st.subheader(platform_key)
+        elif request_type == "Last.fm Charts":
             st.subheader(platform_key)
         else:
             st.subheader(f"{platform_key.capitalize()} Chart")

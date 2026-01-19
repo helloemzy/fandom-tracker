@@ -10,6 +10,7 @@ Output:
 
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
+import html
 import os
 import xml.etree.ElementTree as ET
 
@@ -17,7 +18,7 @@ import pandas as pd
 import requests
 
 
-RSS_URL = "https://kpopofficial.com/category/kpop-comeback-schedule/"
+RSS_URL = "https://kpopofficial.com/category/kpop-comeback-schedule/feed/"
 OUTPUT_PATH = "data/comeback_feed.csv"
 RETENTION_DAYS = 90
 
@@ -38,7 +39,8 @@ def fetch_rss_items():
     response = requests.get(RSS_URL, timeout=30)
     response.raise_for_status()
 
-    root = ET.fromstring(response.text)
+    safe_text = html.unescape(response.text)
+    root = ET.fromstring(safe_text)
     channel = root.find("channel")
     if channel is None:
         return []
