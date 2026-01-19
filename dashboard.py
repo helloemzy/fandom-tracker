@@ -62,6 +62,26 @@ def payload_to_df(payload):
     return pd.DataFrame()
 
 
+@st.cache_data(ttl=900)
+def load_comeback_feed(csv_path="data/comeback_feed.csv"):
+    try:
+        df = pd.read_csv(csv_path)
+    except FileNotFoundError:
+        return pd.DataFrame()
+    except Exception as exc:
+        st.error(f"Comeback feed load failed: {type(exc).__name__}: {exc}")
+        return pd.DataFrame()
+
+    if df.empty:
+        return df
+
+    if "pub_date" in df.columns:
+        df["pub_date"] = pd.to_datetime(df["pub_date"], errors="coerce", utc=True)
+        df = df.sort_values("pub_date", ascending=False)
+
+    return df
+
+
 st.title("Signal Index")
 st.caption("Live Korea + Billboard chart API data (no database).")
 
@@ -187,3 +207,11 @@ else:
 
         with st.expander(f"Raw response: {platform_key}"):
             st.json(payload)
+
+st.subheader("Upcoming Kpop Comebacks")
+comeback_df = load_comeback_feed()
+if comeback_df.empty:
+    st.info("No comeback feed data yet. Run the RSS workflow to populate.")
+else:
+    columns = [col for col in ["pub_date", "title", "link", "source"] if col in comeback_df.columns]
+    st.dataframe(comeback_df[columns].head(50), use_container_width=True)
