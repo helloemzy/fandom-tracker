@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 import streamlit as st
 
@@ -5,6 +7,7 @@ from connectors.billboard_api import BILLBOARD_CHARTS, fetch_chart as fetch_bill
 from connectors.korea_chart_api import fetch_chart, PLATFORMS
 from connectors.lastfm_api import fetch_top_artists, fetch_top_tracks
 from connectors.youtube_music_charts_api import fetch_music_charts
+from update_spotify_charts import fetch_global_daily
 
 
 st.set_page_config(
@@ -96,17 +99,29 @@ def load_comeback_feed(csv_path="data/comeback_feed.csv"):
 
 
 @st.cache_data(ttl=900)
-def load_spotify_global_daily(csv_path="data/spotify_global_daily_latest.csv"):
-    try:
-        df = pd.read_csv(csv_path)
-    except FileNotFoundError:
-        return pd.DataFrame()
-    except Exception as exc:
-        st.error(f"Spotify chart load failed: {type(exc).__name__}: {exc}")
-        return pd.DataFrame()
+def load_spotify_global_daily(csv_path="data/spotify_global_daily_latest.csv", fetch_live=False, refresh_key=0):
+    if not fetch_live:
+        try:
+            df = pd.read_csv(csv_path)
+        except FileNotFoundError:
+            df = pd.DataFrame()
+        except Exception as exc:
+            st.error(f"Spotify chart load failed: {type(exc).__name__}: {exc}")
+            return pd.DataFrame()
+    else:
+        df = pd.DataFrame()
 
     if df.empty:
-        return df
+        try:
+            df = fetch_global_daily()
+            df["delta_streams"] = None
+            df["delta_rank"] = None
+            os.makedirs("data", exist_ok=True)
+            df.to_csv(csv_path, index=False)
+        except Exception as exc:
+            if fetch_live:
+                st.error(f"Spotify chart fetch failed: {type(exc).__name__}: {exc}")
+            return pd.DataFrame()
 
     df["streams"] = pd.to_numeric(df.get("streams"), errors="coerce")
     df["delta_streams"] = pd.to_numeric(df.get("delta_streams"), errors="coerce")
@@ -209,9 +224,15 @@ if request_type == "Kpop Comeback Feed":
         st.dataframe(comeback_df[columns].head(50), use_container_width=True)
 elif request_type == "Spotify Global Daily (Kworb)":
     st.subheader("Spotify Global Daily (Kworb)")
-    spotify_df = load_spotify_global_daily()
+    if st.button("Fetch latest now"):
+        st.session_state["spotify_refresh"] = st.session_state.get("spotify_refresh", 0) + 1
+        fetch_live = True
+    else:
+        fetch_live = False
+    refresh_key = st.session_state.get("spotify_refresh", 0)
+    spotify_df = load_spotify_global_daily(fetch_live=fetch_live, refresh_key=refresh_key)
     if spotify_df.empty:
-        st.info("No Spotify chart data yet. Run 'python update_spotify_charts.py' to populate.")
+        st.info("No Spotify chart data yet. Click 'Fetch latest now' to populate.")
     else:
         columns = [
             col for col in ["rank", "artist", "title", "streams", "delta_streams", "delta_rank"]
