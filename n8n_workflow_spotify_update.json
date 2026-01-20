@@ -41,7 +41,7 @@
     {
       "id": "4",
       "parameters": {
-        "filePath": "/data/fandom-tracker/data/spotify_global_daily_latest.csv",
+        "filePath": "/data/fandom-tracker/data",
         "fileName": "spotify_global_daily_latest.csv",
         "dataPropertyName": "data"
       },
