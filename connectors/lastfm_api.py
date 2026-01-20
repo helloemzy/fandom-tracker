@@ -25,12 +25,11 @@ def _fetch(params, api_key):
     return response.json()
 
 
-def fetch_top_artists(limit=50, period="7day", api_key=None):
+def fetch_top_artists(limit=50, api_key=None):
     payload = _fetch(
         {
             "method": "chart.getTopArtists",
             "limit": limit,
-            "period": period,
         },
         api_key,
     )
@@ -49,12 +48,11 @@ def fetch_top_artists(limit=50, period="7day", api_key=None):
     return {"data": data, "meta": payload.get("artists", {}).get("@attr", {})}
 
 
-def fetch_top_tracks(limit=50, period="7day", api_key=None):
+def fetch_top_tracks(limit=50, api_key=None):
     payload = _fetch(
         {
             "method": "chart.getTopTracks",
             "limit": limit,
-            "period": period,
         },
         api_key,
     )

@@ -10,18 +10,31 @@ Outputs:
 """
 
 from datetime import datetime, timezone
+from io import StringIO
 import os
 
 import pandas as pd
+import requests
 
 
 KWORB_GLOBAL_DAILY_URL = "https://kworb.net/spotify/country/global_daily.html"
 HISTORY_PATH = "data/spotify_global_daily_history.csv"
 LATEST_PATH = "data/spotify_global_daily_latest.csv"
+HEADERS = {
+    "User-Agent": "Signal-Index-Bot/1.0 (Educational Project; Contact: signalindex@example.com)"
+}
 
 
 def fetch_global_daily():
-    df = pd.read_html(KWORB_GLOBAL_DAILY_URL)[0]
+    response = requests.get(KWORB_GLOBAL_DAILY_URL, headers=HEADERS, timeout=30)
+    response.raise_for_status()
+    tables = pd.read_html(StringIO(response.text))
+    if not tables:
+        raise ValueError("No tables found on Kworb page.")
+    df = tables[0]
+    required_cols = {"Pos", "Artist and Title", "Streams"}
+    if not required_cols.issubset(df.columns):
+        raise ValueError("Kworb table columns changed.")
     df = df.rename(
         columns={
             "Pos": "rank",
@@ -31,10 +44,15 @@ def fetch_global_daily():
     )
 
     artist_title = df["artist_title"].astype(str).str.split(" - ", n=1, expand=True)
-    df["artist"] = artist_title[0]
-    df["title"] = artist_title[1]
+    df["artist"] = artist_title[0].str.strip()
+    df["title"] = artist_title[1].str.strip() if artist_title.shape[1] > 1 else None
 
     df["rank"] = pd.to_numeric(df["rank"], errors="coerce")
+    df["streams"] = (
+        df["streams"]
+        .astype(str)
+        .str.replace(",", "", regex=False)
+    )
     df["streams"] = pd.to_numeric(df["streams"], errors="coerce")
 
     df["date"] = datetime.now(timezone.utc).date().isoformat()
@@ -87,7 +105,11 @@ def compute_latest(history_df):
 def main():
     os.makedirs("data", exist_ok=True)
 
-    latest_df = fetch_global_daily()
+    try:
+        latest_df = fetch_global_daily()
+    except Exception as exc:
+        print(f"Kworb fetch failed: {type(exc).__name__}: {exc}")
+        return
     history_df = load_history()
 
     combined = pd.concat([history_df, latest_df], ignore_index=True)

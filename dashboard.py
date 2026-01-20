@@ -48,12 +48,12 @@ def load_youtube_payload(region_code, max_results, api_key, refresh_key=0):
 
 
 @st.cache_data(ttl=3600)
-def load_lastfm_payload(chart_type, limit, period, api_key, refresh_key=0):
+def load_lastfm_payload(chart_type, limit, api_key, refresh_key=0):
     try:
         if chart_type == "Top Artists":
-            return fetch_top_artists(limit=limit, period=period, api_key=api_key), None
+            return fetch_top_artists(limit=limit, api_key=api_key), None
         if chart_type == "Top Tracks":
-            return fetch_top_tracks(limit=limit, period=period, api_key=api_key), None
+            return fetch_top_tracks(limit=limit, api_key=api_key), None
         return None, "Unknown Last.fm chart type."
     except Exception as exc:
         return None, f"{type(exc).__name__}: {exc}"
@@ -119,6 +119,9 @@ st.title("Signal Index")
 st.caption("Live Korea + Billboard + YouTube + Last.fm chart API data (no database).")
 
 all_platforms = list(PLATFORMS.keys())
+st.sidebar.markdown("### Optional Sections")
+show_comebacks = st.sidebar.checkbox("Show comeback feed", value=True)
+show_spotify = st.sidebar.checkbox("Show Spotify Global Daily", value=True)
 request_type = st.sidebar.radio(
     "Data Source",
     ["Korean Music Charts", "Billboard Charts", "YouTube Music Charts", "Last.fm Charts"]
@@ -165,11 +168,6 @@ else:
         platform = "lastfm"
         lastfm_chart_type = st.sidebar.radio("Last.fm Chart", ["Top Artists", "Top Tracks"])
         lastfm_limit = st.sidebar.slider("Max results", min_value=10, max_value=50, value=50, step=5)
-        lastfm_period = st.sidebar.selectbox(
-            "Period",
-            ["7day", "1month", "3month", "6month", "12month", "overall"],
-            index=0
-        )
         youtube_region = None
         youtube_max_results = None
 
@@ -237,7 +235,6 @@ else:
         payload, error = load_lastfm_payload(
             lastfm_chart_type or "Top Artists",
             lastfm_limit or 50,
-            lastfm_period or "7day",
             api_key,
             refresh_key
         )
@@ -277,21 +274,23 @@ else:
         with st.expander(f"Raw response: {platform_key}"):
             st.json(payload)
 
-st.subheader("Upcoming Kpop Comebacks")
-comeback_df = load_comeback_feed()
-if comeback_df.empty:
-    st.info("No comeback feed data yet. Run the RSS workflow to populate.")
-else:
-    columns = [col for col in ["pub_date", "title", "link", "source"] if col in comeback_df.columns]
-    st.dataframe(comeback_df[columns].head(50), use_container_width=True)
+if show_comebacks:
+    st.subheader("Upcoming Kpop Comebacks")
+    comeback_df = load_comeback_feed()
+    if comeback_df.empty:
+        st.info("No comeback feed data yet. Run the RSS workflow to populate.")
+    else:
+        columns = [col for col in ["pub_date", "title", "link", "source"] if col in comeback_df.columns]
+        st.dataframe(comeback_df[columns].head(50), use_container_width=True)
 
-st.subheader("Spotify Global Daily (Kworb)")
-spotify_df = load_spotify_global_daily()
-if spotify_df.empty:
-    st.info("No Spotify chart data yet. Run 'python update_spotify_charts.py' to populate.")
-else:
-    columns = [
-        col for col in ["rank", "artist", "title", "streams", "delta_streams", "delta_rank"]
-        if col in spotify_df.columns
-    ]
-    st.dataframe(spotify_df[columns].head(50), use_container_width=True)
+if show_spotify:
+    st.subheader("Spotify Global Daily (Kworb)")
+    spotify_df = load_spotify_global_daily()
+    if spotify_df.empty:
+        st.info("No Spotify chart data yet. Run 'python update_spotify_charts.py' to populate.")
+    else:
+        columns = [
+            col for col in ["rank", "artist", "title", "streams", "delta_streams", "delta_rank"]
+            if col in spotify_df.columns
+        ]
+        st.dataframe(spotify_df[columns].head(50), use_container_width=True)
