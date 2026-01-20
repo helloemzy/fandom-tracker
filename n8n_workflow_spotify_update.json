@@ -1,5 +1,5 @@
 {
-  "name": "Spotify Global Daily Update (No Exec)",
+  "name": "Spotify Global Daily Update (GitHub)",
   "nodes": [
     {
       "id": "1",
@@ -31,7 +31,7 @@
     {
       "id": "3",
       "parameters": {
-        "functionCode": "const html = $json.body || $json.data || $json || '';\nconst text = typeof html === 'string' ? html : JSON.stringify(html);\nif (!text || text.length < 200) {\n  throw new Error('Kworb HTML response is empty or too short.');\n}\n\nconst tableMatch = text.match(/<table[\\s\\S]*?<\\/table>/i);\nif (!tableMatch) {\n  throw new Error('Kworb HTML table not found.');\n}\nconst tableHtml = tableMatch[0];\nconst rows = tableHtml.split(/<tr[^>]*>/i).slice(1);\n\nconst decode = (value) => value\n  .replace(/&amp;/g, '&')\n  .replace(/&quot;/g, '\"')\n  .replace(/&#39;/g, \"'\")\n  .replace(/&nbsp;/g, ' ')\n  .replace(/\\s+/g, ' ')\n  .trim();\n\nconst data = [];\nconst today = new Date().toISOString().slice(0, 10);\nfor (const row of rows) {\n  const cells = row.match(/<td[^>]*>[\\s\\S]*?<\\/td>/gi) || [];\n  if (cells.length < 3) {\n    continue;\n  }\n  const rankText = decode(cells[0].replace(/<[^>]+>/g, ''));\n  const artistTitle = decode(cells[1].replace(/<[^>]+>/g, ''));\n  const streamsText = decode(cells[2].replace(/<[^>]+>/g, ''));\n  const [artist, title] = artistTitle.split(' - ');\n  const rank = rankText ? Number(rankText.replace(/,/g, '')) : null;\n  if (!rank) {\n    continue;\n  }\n  data.push({\n    date: today,\n    chart: 'spotify_global_daily',\n    rank,\n    artist: artist ? artist.trim() : null,\n    title: title ? title.trim() : null,\n    streams: streamsText ? Number(streamsText.replace(/,/g, '')) : null,\n    delta_streams: null,\n    delta_rank: null\n  });\n}\n\nif (!data.length) {\n  throw new Error('No chart rows parsed from Kworb HTML.');\n}\n\nconst headers = ['date','chart','rank','artist','title','streams','delta_streams','delta_rank'];\nconst lines = [headers.join(',')];\nfor (const row of data) {\n  lines.push(headers.map((key) => {\n    const value = row[key];\n    if (value === null || value === undefined) {\n      return '';\n    }\n    const text = String(value).replace(/\"/g, '\"\"');\n    return /[\",\\n]/.test(text) ? `\"${text}\"` : text;\n  }).join(','));\n}\nconst csv = lines.join('\\n');\n\nreturn [{\n  json: { rows: data.length },\n  binary: {\n    data: {\n      data: Buffer.from(csv, 'utf8').toString('base64'),\n      mimeType: 'text/csv',\n      fileName: 'spotify_global_daily_latest.csv'\n    }\n  }\n}];"
+        "functionCode": "const html = $json.body || $json.data || $json || '';\nconst text = typeof html === 'string' ? html : JSON.stringify(html);\nif (!text || text.length < 200) {\n  throw new Error('Kworb HTML response is empty or too short.');\n}\n\nconst tableMatch = text.match(/<table[\\s\\S]*?<\\/table>/i);\nif (!tableMatch) {\n  throw new Error('Kworb HTML table not found.');\n}\nconst tableHtml = tableMatch[0];\nconst rows = tableHtml.split(/<tr[^>]*>/i).slice(1);\n\nconst decode = (value) => value\n  .replace(/&amp;/g, '&')\n  .replace(/&quot;/g, '\"')\n  .replace(/&#39;/g, \"'\")\n  .replace(/&nbsp;/g, ' ')\n  .replace(/\\s+/g, ' ')\n  .trim();\n\nconst data = [];\nconst today = new Date().toISOString().slice(0, 10);\nfor (const row of rows) {\n  const cells = row.match(/<td[^>]*>[\\s\\S]*?<\\/td>/gi) || [];\n  if (cells.length < 3) {\n    continue;\n  }\n  const rankText = decode(cells[0].replace(/<[^>]+>/g, ''));\n  const artistTitle = decode(cells[1].replace(/<[^>]+>/g, ''));\n  const streamsText = decode(cells[2].replace(/<[^>]+>/g, ''));\n  const [artist, title] = artistTitle.split(' - ');\n  const rank = rankText ? Number(rankText.replace(/,/g, '')) : null;\n  if (!rank) {\n    continue;\n  }\n  data.push({\n    date: today,\n    chart: 'spotify_global_daily',\n    rank,\n    artist: artist ? artist.trim() : null,\n    title: title ? title.trim() : null,\n    streams: streamsText ? Number(streamsText.replace(/,/g, '')) : null,\n    delta_streams: null,\n    delta_rank: null\n  });\n}\n\nif (!data.length) {\n  throw new Error('No chart rows parsed from Kworb HTML.');\n}\n\nconst headers = ['date','chart','rank','artist','title','streams','delta_streams','delta_rank'];\nconst lines = [headers.join(',')];\nfor (const row of data) {\n  lines.push(headers.map((key) => {\n    const value = row[key];\n    if (value === null || value === undefined) {\n      return '';\n    }\n    const text = String(value).replace(/\"/g, '\"\"');\n    return /[\",\\n]/.test(text) ? `\"${text}\"` : text;\n  }).join(','));\n}\nconst csv = lines.join('\\n');\nconst contentBase64 = Buffer.from(csv, 'utf8').toString('base64');\n\nreturn [{\n  json: {\n    rows: data.length,\n    content_base64: contentBase64\n  }\n}];"
       },
       "name": "Build CSV",
       "type": "n8n-nodes-base.function",
@@ -41,19 +41,58 @@
     {
       "id": "4",
       "parameters": {
-        "fileName": "/data/fandom-tracker/data/spotify_global_daily_latest.csv",
-        "dataPropertyName": "data"
+        "url": "https://api.github.com/repos/helloemzy/fandom-tracker/contents/data/spotify_global_daily_latest.csv",
+        "responseFormat": "json",
+        "options": {
+          "ignoreResponseCode": true,
+          "headers": {
+            "Accept": "application/vnd.github+json",
+            "Authorization": "Bearer {{$env.GITHUB_TOKEN}}"
+          }
+        }
       },
-      "name": "Write Latest CSV",
-      "type": "n8n-nodes-base.writeBinaryFile",
-      "typeVersion": 1,
+      "name": "Get GitHub File",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
       "position": [720, 200]
+    },
+    {
+      "id": "5",
+      "parameters": {
+        "functionCode": "const content = $items('Build CSV')[0].json.content_base64;\nconst sha = $json.sha || null;\nconst message = `🤖 Automated data update - ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`;\nconst payload = { message, content };\nif (sha) {\n  payload.sha = sha;\n}\nreturn [{ json: payload }];"
+      },
+      "name": "Prepare GitHub Payload",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [960, 200]
+    },
+    {
+      "id": "6",
+      "parameters": {
+        "url": "https://api.github.com/repos/helloemzy/fandom-tracker/contents/data/spotify_global_daily_latest.csv",
+        "method": "PUT",
+        "responseFormat": "json",
+        "jsonParameters": true,
+        "options": {
+          "headers": {
+            "Accept": "application/vnd.github+json",
+            "Authorization": "Bearer {{$env.GITHUB_TOKEN}}"
+          }
+        },
+        "bodyParametersJson": "={{$json}}"
+      },
+      "name": "Update GitHub File",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1200, 200]
     }
   ],
   "connections": {
     "Cron": { "main": [[{ "node": "Kworb HTTP", "type": "main", "index": 0 }]] },
     "Kworb HTTP": { "main": [[{ "node": "Build CSV", "type": "main", "index": 0 }]] },
-    "Build CSV": { "main": [[{ "node": "Write Latest CSV", "type": "main", "index": 0 }]] }
+    "Build CSV": { "main": [[{ "node": "Get GitHub File", "type": "main", "index": 0 }]] },
+    "Get GitHub File": { "main": [[{ "node": "Prepare GitHub Payload", "type": "main", "index": 0 }]] },
+    "Prepare GitHub Payload": { "main": [[{ "node": "Update GitHub File", "type": "main", "index": 0 }]] }
   },
   "active": false,
   "settings": {},
