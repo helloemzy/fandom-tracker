@@ -158,7 +158,7 @@
     },
     {
       "parameters": {
-        "functionCode": "const meta = $items('YouTube Config')[itemIndex].json;\nconst response = $json || {};\nconst items = (response.items || response.body?.items || $items('YouTube HTTP')[itemIndex]?.json?.items || []).slice(0, 10);\nconst stamp = new Date().toLocaleString('en-US', {\n  timeZone: meta.timezone,\n  weekday: 'short', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit'\n});\nconst list = items.map((r, i) => {\n  const title = r?.snippet?.title || 'Unknown title';\n  const channel = r?.snippet?.channelTitle || 'Unknown channel';\n  return `${i + 1}. ${title} \u2014 ${channel}`;\n}).join('\\n');\nconst text = `${meta.headline} (${stamp})\\n${list}\\n${meta.hashtags}`.trim();\nreturn [{ json: { text } }];"
+        "functionCode": "const meta = {\n  headline: '\ud83d\udcfa YouTube Music Chart',\n  hashtags: '#YouTubeMusic #MusicCharts',\n  timezone: 'Asia/Seoul'\n};\nconst response = $json || {};\nconst items = (response.items || response.body?.items || $items('YouTube HTTP')[itemIndex]?.json?.items || []).slice(0, 10);\nconst stamp = new Date().toLocaleString('en-US', {\n  timeZone: meta.timezone,\n  weekday: 'short', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit'\n});\nconst list = items.map((r, i) => {\n  const title = r?.snippet?.title || 'Unknown title';\n  const channel = r?.snippet?.channelTitle || 'Unknown channel';\n  return `${i + 1}. ${title} \u2014 ${channel}`;\n}).join('\\n');\nconst text = `${meta.headline} (${stamp})\\n${list}\\n${meta.hashtags}`.trim();\nreturn [{ json: { text } }];"
       },
       "name": "Format YouTube Post",
       "type": "n8n-nodes-base.function",
