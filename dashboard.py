@@ -119,12 +119,16 @@ st.title("Signal Index")
 st.caption("Live Korea + Billboard + YouTube + Last.fm chart API data (no database).")
 
 all_platforms = list(PLATFORMS.keys())
-st.sidebar.markdown("### Optional Sections")
-show_comebacks = st.sidebar.checkbox("Show comeback feed", value=True)
-show_spotify = st.sidebar.checkbox("Show Spotify Global Daily", value=True)
 request_type = st.sidebar.radio(
     "Data Source",
-    ["Korean Music Charts", "Billboard Charts", "YouTube Music Charts", "Last.fm Charts"]
+    [
+        "Korean Music Charts",
+        "Billboard Charts",
+        "YouTube Music Charts",
+        "Last.fm Charts",
+        "Kpop Comeback Feed",
+        "Spotify Global Daily (Kworb)"
+    ]
 )
 
 if request_type == "Korean Music Charts":
@@ -133,6 +137,15 @@ if request_type == "Korean Music Charts":
         ["All"] + all_platforms
     )
     platform = None if platform_choice == "All" else platform_choice
+    billboard_date = None
+    billboard_year = None
+    youtube_region = None
+    youtube_max_results = None
+    lastfm_chart_type = None
+    lastfm_limit = None
+    lastfm_period = None
+elif request_type == "Spotify Global Daily (Kworb)":
+    platform = "spotify_global_daily"
     billboard_date = None
     billboard_year = None
     youtube_region = None
@@ -164,6 +177,13 @@ else:
         lastfm_chart_type = None
         lastfm_limit = None
         lastfm_period = None
+    elif request_type == "Kpop Comeback Feed":
+        platform = "kpop_comeback_feed"
+        youtube_region = None
+        youtube_max_results = None
+        lastfm_chart_type = None
+        lastfm_limit = None
+        lastfm_period = None
     else:
         platform = "lastfm"
         lastfm_chart_type = st.sidebar.radio("Last.fm Chart", ["Top Artists", "Top Tracks"])
@@ -179,7 +199,26 @@ refresh_key = st.session_state.get("live_refresh", 0)
 payloads = {}
 errors = {}
 
-if platform is None and request_type == "Billboard Charts":
+if request_type == "Kpop Comeback Feed":
+    st.subheader("Upcoming Kpop Comebacks")
+    comeback_df = load_comeback_feed()
+    if comeback_df.empty:
+        st.info("No comeback feed data yet. Run the RSS workflow to populate.")
+    else:
+        columns = [col for col in ["pub_date", "title", "link", "source"] if col in comeback_df.columns]
+        st.dataframe(comeback_df[columns].head(50), use_container_width=True)
+elif request_type == "Spotify Global Daily (Kworb)":
+    st.subheader("Spotify Global Daily (Kworb)")
+    spotify_df = load_spotify_global_daily()
+    if spotify_df.empty:
+        st.info("No Spotify chart data yet. Run 'python update_spotify_charts.py' to populate.")
+    else:
+        columns = [
+            col for col in ["rank", "artist", "title", "streams", "delta_streams", "delta_rank"]
+            if col in spotify_df.columns
+        ]
+        st.dataframe(spotify_df[columns].head(50), use_container_width=True)
+elif platform is None and request_type == "Billboard Charts":
     st.info("Select a Billboard chart from the sidebar to load data.")
 elif platform is None:
     if request_type == "Korean Music Charts":
@@ -250,9 +289,7 @@ if errors:
     for platform_key, message in errors.items():
         st.error(f"{platform_key} fetch failed: {message}")
 
-if not payloads:
-    st.info("No data returned.")
-else:
+if payloads:
     for platform_key, payload in payloads.items():
         if request_type == "Billboard Charts" and isinstance(payload, dict):
             title = payload.get("title") or platform_key
@@ -273,24 +310,5 @@ else:
 
         with st.expander(f"Raw response: {platform_key}"):
             st.json(payload)
-
-if show_comebacks:
-    st.subheader("Upcoming Kpop Comebacks")
-    comeback_df = load_comeback_feed()
-    if comeback_df.empty:
-        st.info("No comeback feed data yet. Run the RSS workflow to populate.")
-    else:
-        columns = [col for col in ["pub_date", "title", "link", "source"] if col in comeback_df.columns]
-        st.dataframe(comeback_df[columns].head(50), use_container_width=True)
-
-if show_spotify:
-    st.subheader("Spotify Global Daily (Kworb)")
-    spotify_df = load_spotify_global_daily()
-    if spotify_df.empty:
-        st.info("No Spotify chart data yet. Run 'python update_spotify_charts.py' to populate.")
-    else:
-        columns = [
-            col for col in ["rank", "artist", "title", "streams", "delta_streams", "delta_rank"]
-            if col in spotify_df.columns
-        ]
-        st.dataframe(spotify_df[columns].head(50), use_container_width=True)
+elif request_type not in ("Kpop Comeback Feed", "Spotify Global Daily (Kworb)"):
+    st.info("No data returned.")
