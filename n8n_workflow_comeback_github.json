@@ -63,6 +63,7 @@
         }
       },
       "name": "Get GitHub File",
+      "continueOnFail": true,
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
       "position": [
