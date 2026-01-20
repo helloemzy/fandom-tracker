@@ -3,32 +3,52 @@
   "nodes": [
     {
       "parameters": {
-        "triggerTimes": [{ "mode": "everyDay", "hour": 1, "minute": 0 }],
+        "triggerTimes": [
+          {
+            "mode": "everyDay",
+            "hour": 1,
+            "minute": 0
+          }
+        ],
         "timezone": "UTC"
       },
       "name": "Cron",
       "type": "n8n-nodes-base.cron",
       "typeVersion": 1,
-      "position": [0, 200]
+      "position": [
+        0,
+        200
+      ]
     },
     {
       "parameters": {
         "url": "https://kpopofficial.com/category/kpop-comeback-schedule/feed/",
-        "responseFormat": "string"
+        "responseFormat": "string",
+        "options": {
+          "headers": {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+          }
+        }
       },
       "name": "Fetch RSS",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [240, 200]
+      "position": [
+        240,
+        200
+      ]
     },
     {
       "parameters": {
-        "functionCode": "const xml = $json.body || '';\nconst decode = (value) => value\n  .replace(/&amp;/g, '&')\n  .replace(/&quot;/g, '\"')\n  .replace(/&#39;/g, \"'\")\n  .replace(/&nbsp;/g, ' ')\n  .replace(/\\s+/g, ' ')\n  .trim();\n\nconst items = xml.match(/<item>[\\s\\S]*?<\\/item>/gi) || [];\nconst rows = [];\nfor (const item of items) {\n  const title = decode((item.match(/<title><!\\[CDATA\\[(.*?)\\]\\]><\\/title>/i) || [])[1] || (item.match(/<title>(.*?)<\\/title>/i) || [])[1] || '');\n  const link = decode((item.match(/<link>(.*?)<\\/link>/i) || [])[1] || '');\n  const pubDate = decode((item.match(/<pubDate>(.*?)<\\/pubDate>/i) || [])[1] || '');\n  if (!title || !link) {\n    continue;\n  }\n  rows.push({\n    title: title,\n    link: link,\n    pub_date: pubDate || null,\n    source: 'kpopofficial.com'\n  });\n}\n\nif (!rows.length) {\n  throw new Error('No RSS items parsed.');\n}\n\nconst headers = ['title','link','pub_date','source'];\nconst lines = [headers.join(',')];\nfor (const row of rows) {\n  const line = headers.map((key) => {\n    const value = row[key];\n    if (value === null || value === undefined) {\n      return '';\n    }\n    const text = String(value).replace(/\"/g, '\"\"');\n    if (text.indexOf('\"') !== -1 || text.indexOf(',') !== -1 || text.indexOf('\\n') !== -1) {\n      return '\"' + text + '\"';\n    }\n    return text;\n  }).join(',');\n  lines.push(line);\n}\nconst csv = lines.join('\\n');\nconst contentBase64 = Buffer.from(csv, 'utf8').toString('base64');\n\nreturn [{\n  json: {\n    rows: rows.length,\n    content_base64: contentBase64\n  }\n}];"
+        "functionCode": "const xml = $json.body || $json.data || $json || ''\nconst xmlText = typeof xml === 'string' ? xml : JSON.stringify(xml)\nconst decode = (value) => value\n  .replace(/&amp;/g, '&')\n  .replace(/&quot;/g, '\"')\n  .replace(/&#39;/g, \"'\")\n  .replace(/&nbsp;/g, ' ')\n  .replace(/\\s+/g, ' ')\n  .trim()\n\nconst items = xmlText.match(/<item[\\s\\S]*?<\\/item>/gi) || []\nconst entries = xmlText.match(/<entry[\\s\\S]*?<\\/entry>/gi) || []\nconst nodes = items.length ? items : entries\nconst rows = []\nfor (const item of nodes) {\n  const title = decode((item.match(/<title><!\\[CDATA\\[(.*?)\\]\\]><\\/title>/i) || [])[1] || (item.match(/<title>(.*?)<\\/title>/i) || [])[1] || '')\n  const link = decode((item.match(/<link>(.*?)<\\/link>/i) || [])[1] || (item.match(/<link[^>]*href=[\"'](.*?)[\"']/i) || [])[1] || '')\n  const pubDate = decode((item.match(/<pubDate>(.*?)<\\/pubDate>/i) || [])[1] || (item.match(/<updated>(.*?)<\\/updated>/i) || [])[1] || '')\n  if (!title || !link) {\n    continue\n  }\n  rows.push({\n    title: title,\n    link: link,\n    pub_date: pubDate || null,\n    source: 'kpopofficial.com'\n  })\n}\n\nif (!rows.length) {\n  throw new Error('No RSS items parsed.')\n}\n\nconst headers = ['title','link','pub_date','source']\nconst lines = [headers.join(',')]\nfor (const row of rows) {\n  const line = headers.map((key) => {\n    const value = row[key]\n    if (value === null || value === undefined) {\n      return ''\n    }\n    const text = String(value).replace(/\"/g, '\"\"')\n    if (text.indexOf('\"') !== -1 || text.indexOf(',') !== -1 || text.indexOf('\\n') !== -1) {\n      return '\"' + text + '\"'\n    }\n    return text\n  }).join(',')\n  lines.push(line)\n}\nconst csv = lines.join('\\n')\nconst contentBase64 = Buffer.from(csv, 'utf8').toString('base64')\n\nreturn [{\n  json: {\n    rows: rows.length,\n    content_base64: contentBase64\n  }\n}]\n"
       },
       "name": "Build CSV",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [480, 200]
+      "position": [
+        480,
+        200
+      ]
     },
     {
       "parameters": {
@@ -45,16 +65,22 @@
       "name": "Get GitHub File",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [720, 200]
+      "position": [
+        720,
+        200
+      ]
     },
     {
       "parameters": {
-        "functionCode": "const content = $items('Build CSV')[0].json.content_base64;\nconst sha = $json.sha || null;\nconst message = `🤖 Automated data update - ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`;\nconst payload = { message, content };\nif (sha) {\n  payload.sha = sha;\n}\nreturn [{ json: payload }];"
+        "functionCode": "const content = $items('Build CSV')[0].json.content_base64;\nconst sha = $json.sha || null;\nconst message = `\ud83e\udd16 Automated data update - ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`;\nconst payload = { message, content };\nif (sha) {\n  payload.sha = sha;\n}\nreturn [{ json: payload }];"
       },
       "name": "Prepare GitHub Payload",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [960, 200]
+      "position": [
+        960,
+        200
+      ]
     },
     {
       "parameters": {
@@ -73,15 +99,68 @@
       "name": "Update GitHub File",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [1200, 200]
+      "position": [
+        1200,
+        200
+      ]
     }
   ],
   "connections": {
-    "Cron": { "main": [[{ "node": "Fetch RSS", "type": "main", "index": 0 }]] },
-    "Fetch RSS": { "main": [[{ "node": "Build CSV", "type": "main", "index": 0 }]] },
-    "Build CSV": { "main": [[{ "node": "Get GitHub File", "type": "main", "index": 0 }]] },
-    "Get GitHub File": { "main": [[{ "node": "Prepare GitHub Payload", "type": "main", "index": 0 }]] },
-    "Prepare GitHub Payload": { "main": [[{ "node": "Update GitHub File", "type": "main", "index": 0 }]] }
+    "Cron": {
+      "main": [
+        [
+          {
+            "node": "Fetch RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch RSS": {
+      "main": [
+        [
+          {
+            "node": "Build CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build CSV": {
+      "main": [
+        [
+          {
+            "node": "Get GitHub File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get GitHub File": {
+      "main": [
+        [
+          {
+            "node": "Prepare GitHub Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare GitHub Payload": {
+      "main": [
+        [
+          {
+            "node": "Update GitHub File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
   "active": false,
   "settings": {},
