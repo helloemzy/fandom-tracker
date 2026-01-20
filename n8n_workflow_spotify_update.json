@@ -2,28 +2,31 @@
   "name": "Spotify Global Daily Update",
   "nodes": [
     {
+      "id": "1",
       "parameters": {
         "triggerTimes": [{ "mode": "everyDay", "hour": 0, "minute": 30 }],
         "timezone": "UTC"
       },
-      "name": "Daily Trigger",
+      "name": "Cron",
       "type": "n8n-nodes-base.cron",
       "typeVersion": 1,
       "position": [0, 200]
     },
     {
+      "id": "2",
       "parameters": {
         "command": "cd /data/fandom-tracker && ./venv/bin/python update_spotify_charts.py"
       },
-      "name": "Update Spotify Charts",
+      "name": "Update Charts",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [260, 200]
     }
   ],
   "connections": {
-    "Daily Trigger": { "main": [[{ "node": "Update Spotify Charts", "type": "main", "index": 0 }]] }
+    "Cron": { "main": [[{ "node": "Update Charts", "type": "main", "index": 0 }]] }
   },
   "active": false,
-  "settings": {}
+  "settings": {},
+  "staticData": null
 }
