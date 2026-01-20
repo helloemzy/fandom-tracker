@@ -1,5 +1,5 @@
 {
-  "name": "Spotify Global Daily Update",
+  "name": "Spotify Global Daily Update (No Exec)",
   "nodes": [
     {
       "id": "1",
@@ -15,16 +15,40 @@
     {
       "id": "2",
       "parameters": {
-        "command": "cd /data/fandom-tracker && ./venv/bin/python update_spotify_charts.py"
+        "url": "https://kworb.net/spotify/country/global_daily.html",
+        "responseFormat": "string"
       },
-      "name": "Update Charts",
-      "type": "n8n-nodes-base.executeCommand",
+      "name": "Kworb HTTP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [240, 200]
+    },
+    {
+      "id": "3",
+      "parameters": {
+        "functionCode": "const html = $json.body || '';\nconst rows = html.split(/<tr[^>]*>/i).slice(1);\nconst decode = (value) => value\n  .replace(/&amp;/g, '&')\n  .replace(/&quot;/g, '\"')\n  .replace(/&#39;/g, \"'\")\n  .replace(/&nbsp;/g, ' ')\n  .replace(/\\s+/g, ' ')\n  .trim();\n\nconst data = [];\nconst today = new Date().toISOString().slice(0, 10);\nfor (const row of rows) {\n  const cells = row.match(/<td[^>]*>[\\s\\S]*?<\\/td>/gi) || [];\n  if (cells.length < 3) {\n    continue;\n  }\n  const rankText = decode(cells[0].replace(/<[^>]+>/g, ''));\n  const artistTitle = decode(cells[1].replace(/<[^>]+>/g, ''));\n  const streamsText = decode(cells[2].replace(/<[^>]+>/g, ''));\n  const [artist, title] = artistTitle.split(' - ');\n  data.push({\n    date: today,\n    chart: 'spotify_global_daily',\n    rank: rankText ? Number(rankText.replace(/,/g, '')) : null,\n    artist: artist ? artist.trim() : null,\n    title: title ? title.trim() : null,\n    streams: streamsText ? Number(streamsText.replace(/,/g, '')) : null,\n    delta_streams: null,\n    delta_rank: null\n  });\n}\n\nif (!data.length) {\n  throw new Error('No chart rows parsed from Kworb HTML.');\n}\n\nconst headers = ['date','chart','rank','artist','title','streams','delta_streams','delta_rank'];\nconst lines = [headers.join(',')];\nfor (const row of data) {\n  lines.push(headers.map((key) => {\n    const value = row[key];\n    if (value === null || value === undefined) {\n      return '';\n    }\n    const text = String(value).replace(/\"/g, '\"\"');\n    return /[\",\\n]/.test(text) ? `\"${text}\"` : text;\n  }).join(','));\n}\nconst csv = lines.join('\\n');\n\nreturn [{\n  json: { rows: data.length },\n  binary: {\n    data: {\n      data: Buffer.from(csv, 'utf8').toString('base64'),\n      mimeType: 'text/csv',\n      fileName: 'spotify_global_daily_latest.csv'\n    }\n  }\n}];"
+      },
+      "name": "Build CSV",
+      "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [260, 200]
+      "position": [480, 200]
+    },
+    {
+      "id": "4",
+      "parameters": {
+        "filePath": "/data/fandom-tracker/data/spotify_global_daily_latest.csv",
+        "dataPropertyName": "data"
+      },
+      "name": "Write Latest CSV",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [720, 200]
     }
   ],
   "connections": {
-    "Cron": { "main": [[{ "node": "Update Charts", "type": "main", "index": 0 }]] }
+    "Cron": { "main": [[{ "node": "Kworb HTTP", "type": "main", "index": 0 }]] },
+    "Kworb HTTP": { "main": [[{ "node": "Build CSV", "type": "main", "index": 0 }]] },
+    "Build CSV": { "main": [[{ "node": "Write Latest CSV", "type": "main", "index": 0 }]] }
   },
   "active": false,
   "settings": {},
