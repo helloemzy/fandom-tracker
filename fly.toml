@@ -1,0 +1,30 @@
+app = "signalcollective-n8n"
+primary_region = "sin"
+
+[env]
+  N8N_HOST = "signalcollective-n8n.fly.dev"
+  N8N_PORT = "5678"
+  N8N_PROTOCOL = "https"
+  WEBHOOK_URL = "https://signalcollective-n8n.fly.dev/"
+  N8N_EDITOR_BASE_URL = "https://signalcollective-n8n.fly.dev/"
+  GENERIC_TIMEZONE = "Asia/Hong_Kong"
+  N8N_RESTRICT_FILE_ACCESS_TO = "/home/node/.n8n"
+
+[[mounts]]
+  source = "n8n_data"
+  destination = "/home/node/.n8n"
+
+[[services]]
+  internal_port = 5678
+  protocol = "tcp"
+  auto_start_machines = true
+  auto_stop_machines = false
+  min_machines_running = 1
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443

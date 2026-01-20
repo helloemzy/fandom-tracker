@@ -1,0 +1,15 @@
+__pycache__/
+.git/
+.github/
+.venv/
+venv/
+data/
+vendor/
+node_modules/
+*.log
+*.csv
+*.sqlite
+*.db
+*.env
+*.env.*
+*.DS_Store
