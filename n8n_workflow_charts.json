@@ -3,23 +3,41 @@
   "nodes": [
     {
       "parameters": {
-        "triggerTimes": [{ "mode": "everyDay", "hour": 9, "minute": 0 }],
+        "triggerTimes": [
+          {
+            "mode": "everyDay",
+            "hour": 9,
+            "minute": 0
+          }
+        ],
         "timezone": "Asia/Seoul"
       },
       "name": "KOR_AM",
       "type": "n8n-nodes-base.cron",
       "typeVersion": 1,
-      "position": [0, 200]
+      "position": [
+        0,
+        200
+      ]
     },
     {
       "parameters": {
-        "triggerTimes": [{ "mode": "everyDay", "hour": 21, "minute": 0 }],
+        "triggerTimes": [
+          {
+            "mode": "everyDay",
+            "hour": 21,
+            "minute": 0
+          }
+        ],
         "timezone": "Asia/Seoul"
       },
       "name": "KOR_PM",
       "type": "n8n-nodes-base.cron",
       "typeVersion": 1,
-      "position": [0, 320]
+      "position": [
+        0,
+        320
+      ]
     },
     {
       "parameters": {
@@ -28,7 +46,10 @@
       "name": "Korea Charts Config",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [220, 260]
+      "position": [
+        220,
+        260
+      ]
     },
     {
       "parameters": {
@@ -38,7 +59,10 @@
       "name": "Korea Charts HTTP",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [460, 260]
+      "position": [
+        460,
+        260
+      ]
     },
     {
       "parameters": {
@@ -47,7 +71,10 @@
       "name": "Format Korea Post",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [700, 260]
+      "position": [
+        700,
+        260
+      ]
     },
     {
       "parameters": {
@@ -56,7 +83,10 @@
       "name": "Post Korea to X",
       "type": "n8n-nodes-base.twitter",
       "typeVersion": 2,
-      "position": [940, 260],
+      "position": [
+        940,
+        260
+      ],
       "credentials": {
         "twitterOAuth2Api": {
           "id": "YOUR_TWITTER_CREDENTIAL_ID",
@@ -66,22 +96,35 @@
     },
     {
       "parameters": {
-        "triggerTimes": [{ "mode": "everyWeek", "weekday": "tuesday", "hour": 10, "minute": 5 }],
+        "triggerTimes": [
+          {
+            "mode": "everyWeek",
+            "weekday": "tuesday",
+            "hour": 10,
+            "minute": 5
+          }
+        ],
         "timezone": "America/New_York"
       },
       "name": "BB_WEEKLY",
       "type": "n8n-nodes-base.cron",
       "typeVersion": 1,
-      "position": [0, 520]
+      "position": [
+        0,
+        520
+      ]
     },
     {
       "parameters": {
-        "functionCode": "const tz = 'America/New_York';\nconst now = new Date();\nconst est = new Date(now.toLocaleString('en-US', { timeZone: tz }));\nconst day = est.getDay();\nconst daysToSat = (6 - day + 7) % 7;\nconst d = new Date(est); d.setDate(est.getDate() + daysToSat);\nconst yyyy = d.getFullYear();\nconst mm = String(d.getMonth() + 1).padStart(2, '0');\nconst dd = String(d.getDate()).padStart(2, '0');\nconst date = `${yyyy}-${mm}-${dd}`;\nconst base = 'https://billboard-charts.fly.dev/chart/';\nreturn [\n  { json: { chart_type: 'billboard', chart_name: 'Billboard Hot 100', headline: '\ud83c\uddfa\ud83c\uddf8 Billboard Hot 100', hashtags: '#Billboard #Hot100', timezone: tz, url: `${base}hot-100?date=${date}` } },\n  { json: { chart_type: 'billboard', chart_name: 'Billboard 200', headline: '\ud83c\uddfa\ud83c\uddf8 Billboard 200', hashtags: '#Billboard #Billboard200', timezone: tz, url: `${base}billboard-200?date=${date}` } },\n  { json: { chart_type: 'billboard', chart_name: 'Pop Songs', headline: '\ud83c\uddfa\ud83c\uddf8 Billboard Pop Songs', hashtags: '#Pop #Billboard', timezone: tz, url: `${base}pop-songs?date=${date}` } }\n];"
+        "functionCode": "const tz = 'America/New_York';\nconst now = new Date();\nconst est = new Date(now.toLocaleString('en-US', { timeZone: tz }));\nconst day = est.getDay();\nconst daysToSat = (6 - day + 7) % 7;\nconst d = new Date(est); d.setDate(est.getDate() + daysToSat);\nconst yyyy = d.getFullYear();\nconst mm = String(d.getMonth() + 1).padStart(2, '0');\nconst dd = String(d.getDate()).padStart(2, '0');\nconst date = `${yyyy}-${mm}-${dd}`;\nconst base = 'https://billboard-charts.fly.dev/chart/';\nreturn [\n  { json: { chart_type: 'billboard', chart_name: 'Billboard Hot 100', headline: '\ud83c\uddfa\ud83c\uddf8 Billboard Hot 100', hashtags: '#Billboard #Hot100', timezone: tz, url: `${base}hot-100?date=${date}` } },\n  { json: { chart_type: 'billboard', chart_name: 'Billboard 200', headline: '\ud83c\uddfa\ud83c\uddf8 Billboard 200', hashtags: '#Billboard #Billboard200', timezone: tz, url: `${base}billboard-200?date=${date}` } },\n  { json: { chart_type: 'billboard', chart_name: 'Pop Songs', headline: '\ud83c\uddfa\ud83c\uddf8 Billboard Pop Songs', hashtags: '#Pop #Billboard', timezone: tz, url: `${base}pop-songs` } }\n];\n"
       },
       "name": "Billboard Config",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [220, 520]
+      "position": [
+        220,
+        520
+      ]
     },
     {
       "parameters": {
@@ -91,16 +134,22 @@
       "name": "Billboard HTTP",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [460, 520]
+      "position": [
+        460,
+        520
+      ]
     },
     {
       "parameters": {
-        "functionCode": "const meta = $items('Billboard Config')[itemIndex].json;\nconst rows = ($json.entries || []).slice(0, 10);\nconst stamp = new Date().toLocaleString('en-US', {\n  timeZone: meta.timezone,\n  weekday: 'short', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit'\n});\nconst list = rows.map(r => `${r.rank}. ${r.title} \u2014 ${r.artist}`).join('\\n');\nconst text = `${meta.headline} (${stamp})\\n${list}\\n${meta.hashtags}`.trim();\nreturn [{ json: { text } }];"
+        "functionCode": "const meta = $items('Billboard Config')[itemIndex].json;\nconst payload = $json || {};\nconst rows = (payload.entries || payload.data || payload.chart?.entries || payload.chart?.data || []).slice(0, 10);\nconst stamp = new Date().toLocaleString('en-US', {\n  timeZone: meta.timezone,\n  weekday: 'short', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit'\n});\nconst list = rows.length\n  ? rows.map(r => `${r.rank}. ${r.title} \u2014 ${r.artist}`).join('\\n')\n  : 'No chart data returned.';\nconst text = `${meta.headline} (${stamp})\\n${list}\\n${meta.hashtags}`.trim();\nreturn [{ json: { text } }];\n"
       },
       "name": "Format Billboard Post",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [700, 520]
+      "position": [
+        700,
+        520
+      ]
     },
     {
       "parameters": {
@@ -109,7 +158,10 @@
       "name": "Post Billboard to X",
       "type": "n8n-nodes-base.twitter",
       "typeVersion": 2,
-      "position": [940, 520],
+      "position": [
+        940,
+        520
+      ],
       "credentials": {
         "twitterOAuth2Api": {
           "id": "YOUR_TWITTER_CREDENTIAL_ID",
@@ -119,13 +171,22 @@
     },
     {
       "parameters": {
-        "triggerTimes": [{ "mode": "everyDay", "hour": 12, "minute": 0 }],
+        "triggerTimes": [
+          {
+            "mode": "everyDay",
+            "hour": 12,
+            "minute": 0
+          }
+        ],
         "timezone": "Asia/Seoul"
       },
       "name": "YT_DAILY",
       "type": "n8n-nodes-base.cron",
       "typeVersion": 1,
-      "position": [0, 740]
+      "position": [
+        0,
+        740
+      ]
     },
     {
       "parameters": {
@@ -134,7 +195,10 @@
       "name": "YouTube Config",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [220, 740]
+      "position": [
+        220,
+        740
+      ]
     },
     {
       "parameters": {
@@ -142,19 +206,40 @@
         "responseFormat": "json",
         "queryParametersUi": {
           "parameter": [
-            { "name": "part", "value": "snippet,statistics" },
-            { "name": "chart", "value": "mostPopular" },
-            { "name": "videoCategoryId", "value": "10" },
-            { "name": "regionCode", "value": "={{$json.region}}" },
-            { "name": "maxResults", "value": "={{$json.max_results}}" },
-            { "name": "key", "value": "={{$env.YOUTUBE_API_KEY}}" }
+            {
+              "name": "part",
+              "value": "snippet,statistics"
+            },
+            {
+              "name": "chart",
+              "value": "mostPopular"
+            },
+            {
+              "name": "videoCategoryId",
+              "value": "10"
+            },
+            {
+              "name": "regionCode",
+              "value": "={{$json.region}}"
+            },
+            {
+              "name": "maxResults",
+              "value": "={{$json.max_results}}"
+            },
+            {
+              "name": "key",
+              "value": "={{$env.YOUTUBE_API_KEY}}"
+            }
           ]
         }
       },
       "name": "YouTube HTTP",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [460, 740]
+      "position": [
+        460,
+        740
+      ]
     },
     {
       "parameters": {
@@ -163,7 +248,10 @@
       "name": "Format YouTube Post",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [700, 740]
+      "position": [
+        700,
+        740
+      ]
     },
     {
       "parameters": {
@@ -172,7 +260,10 @@
       "name": "Post YouTube to X",
       "type": "n8n-nodes-base.twitter",
       "typeVersion": 2,
-      "position": [940, 740],
+      "position": [
+        940,
+        740
+      ],
       "credentials": {
         "twitterOAuth2Api": {
           "id": "YOUR_TWITTER_CREDENTIAL_ID",
@@ -182,21 +273,149 @@
     }
   ],
   "connections": {
-    "KOR_AM": { "main": [[{ "node": "Korea Charts Config", "type": "main", "index": 0 }]] },
-    "KOR_PM": { "main": [[{ "node": "Korea Charts Config", "type": "main", "index": 0 }]] },
-    "Korea Charts Config": { "main": [[{ "node": "Korea Charts HTTP", "type": "main", "index": 0 }]] },
-    "Korea Charts HTTP": { "main": [[{ "node": "Format Korea Post", "type": "main", "index": 0 }]] },
-    "Format Korea Post": { "main": [[{ "node": "Post Korea to X", "type": "main", "index": 0 }]] },
-
-    "BB_WEEKLY": { "main": [[{ "node": "Billboard Config", "type": "main", "index": 0 }]] },
-    "Billboard Config": { "main": [[{ "node": "Billboard HTTP", "type": "main", "index": 0 }]] },
-    "Billboard HTTP": { "main": [[{ "node": "Format Billboard Post", "type": "main", "index": 0 }]] },
-    "Format Billboard Post": { "main": [[{ "node": "Post Billboard to X", "type": "main", "index": 0 }]] },
-
-    "YT_DAILY": { "main": [[{ "node": "YouTube Config", "type": "main", "index": 0 }]] },
-    "YouTube Config": { "main": [[{ "node": "YouTube HTTP", "type": "main", "index": 0 }]] },
-    "YouTube HTTP": { "main": [[{ "node": "Format YouTube Post", "type": "main", "index": 0 }]] },
-    "Format YouTube Post": { "main": [[{ "node": "Post YouTube to X", "type": "main", "index": 0 }]] }
+    "KOR_AM": {
+      "main": [
+        [
+          {
+            "node": "Korea Charts Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KOR_PM": {
+      "main": [
+        [
+          {
+            "node": "Korea Charts Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Korea Charts Config": {
+      "main": [
+        [
+          {
+            "node": "Korea Charts HTTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Korea Charts HTTP": {
+      "main": [
+        [
+          {
+            "node": "Format Korea Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Korea Post": {
+      "main": [
+        [
+          {
+            "node": "Post Korea to X",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BB_WEEKLY": {
+      "main": [
+        [
+          {
+            "node": "Billboard Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Billboard Config": {
+      "main": [
+        [
+          {
+            "node": "Billboard HTTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Billboard HTTP": {
+      "main": [
+        [
+          {
+            "node": "Format Billboard Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Billboard Post": {
+      "main": [
+        [
+          {
+            "node": "Post Billboard to X",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YT_DAILY": {
+      "main": [
+        [
+          {
+            "node": "YouTube Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube Config": {
+      "main": [
+        [
+          {
+            "node": "YouTube HTTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube HTTP": {
+      "main": [
+        [
+          {
+            "node": "Format YouTube Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format YouTube Post": {
+      "main": [
+        [
+          {
+            "node": "Post YouTube to X",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
   "active": false,
   "settings": {}
